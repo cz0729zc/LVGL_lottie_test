@@ -9,7 +9,10 @@
     "esp_lvgl_port.h": "c",
     "lvgl.h": "c",
     "esp_lvgl_port_disp.h": "c",
-    "lv_rlottie.h": "c"
+    "lv_rlottie.h": "c",
+    "esp_check.h": "c",
+    "bsp_lcd.h": "c",
+    "esp_lvgl_port_knob.h": "c"
   },
   "idf.openOcdConfigs": [
     "board/esp32s3-builtin.cfg"

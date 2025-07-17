@@ -595,13 +595,9 @@
          break;
      }
  }
-
- extern uint8_t *g_lottie_buf;
- extern size_t g_lottie_buf_size;
-
+ 
  static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, uint8_t *color_map)
  {
-     //ESP_LOGW("LVGL_CALLBACK", "flush_cb called");
      assert(drv != NULL);
      assert(area != NULL);
      assert(color_map != NULL);
@@ -681,43 +677,6 @@
          _lvgl_port_transform_monochrome(drv, area, &color_map);
      }
  
-     // ====== ARGB8888 -> RGB565 自动转换，兼容 Lottie 动画和普通控件 ======
-     #define MAX_BUF_PIXELS (128*160) // 根据你的屏幕分辨率调整
-     static uint16_t rgb565_buf[MAX_BUF_PIXELS];
-     lv_color_format_t cf = lv_display_get_color_format(drv);
-     size_t area_w = lv_area_get_width(area);
-     size_t area_h = lv_area_get_height(area);
-     size_t px_cnt = area_w * area_h;
- 
-     //ESP_LOGI("LVGL", "flush_cb: color_format=%d, area=[%d,%d,%d,%d], px_cnt=%d", cf, area->x1, area->y1, area->x2, area->y2, px_cnt);
- 
-     if (color_map == g_lottie_buf) {
-        ESP_LOGI("LVGL", "Lottie flush triggered");
-        size_t px_cnt = g_lottie_buf_size / 4;
-        #define MAX_BUF_PIXELS (128*160)
-        static uint16_t rgb565_buf[MAX_BUF_PIXELS];
-        if (px_cnt > MAX_BUF_PIXELS) {
-            ESP_LOGE("LVGL", "Lottie flush area too large! %d", px_cnt);
-            return;
-        }
-        for (size_t i = 0; i < px_cnt; i++) {
-            uint8_t *src = &g_lottie_buf[i * 4];
-            uint8_t r = src[1];
-            uint8_t g = src[2];
-            uint8_t b = src[3];
-            uint16_t rgb565 = ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
-            rgb565_buf[i] = rgb565;
-        }
-        color_map = (uint8_t *)rgb565_buf;
-     } else if (cf == LV_COLOR_FORMAT_RGB565) {
-         // 直接用 color_map
-     } else {
-         ESP_LOGW("LVGL", "Unsupported color format: %d", cf);
-         return;
-     }
-     // ====== End ======
- 
-     //同一刷屏
      if ((disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB || disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_DSI) && (disp_ctx->flags.direct_mode || disp_ctx->flags.full_refresh)) {
          if (lv_disp_flush_is_last(drv)) {
              /* If the interface is I80 or SPI, this step cannot be used for drawing. */
