@@ -1,0 +1,26 @@
+{
+  "idf.flashType": "UART",
+  "idf.portWin": "COM26",
+  "files.associations": {
+    "*.c": "c",
+    "*.txt": "txt",
+    "thorvg_capi.h": "c",
+    "rlottie.h": "c",
+    "esp_lvgl_port.h": "c",
+    "lvgl.h": "c",
+    "esp_lvgl_port_disp.h": "c",
+    "lv_rlottie.h": "c"
+  },
+  "idf.openOcdConfigs": [
+    "board/esp32s3-builtin.cfg"
+  ],
+  "idf.customExtraVars": {
+    "IDF_TARGET": "esp32s3"
+  },
+  "clangd.path": "D:\\Development_Tool\\ESP32\\.espressif\\tools\\esp-clang\\16.0.1-fe4f10a809\\esp-clang\\bin\\clangd.exe",
+  "clangd.arguments": [
+    "--background-index",
+    "--query-driver=D:\\Development_Tool\\ESP32\\.espressif\\tools\\xtensa-esp-elf\\esp-13.2.0_20240530\\xtensa-esp-elf\\bin\\xtensa-esp32s3-elf-gcc.exe",
+    "--compile-commands-dir=d:\\Development_Tool\\ESP32\\Project_V532\\test_lvgl3\\build"
+  ]
+}
