@@ -22,25 +22,16 @@ static void sensor_detect(void)
          .bus_gpio_num = BSP_DS18B20_ONEWIRE_GPIO,
      };
      onewire_bus_rmt_config_t rmt_config = {
-         .max_rx_bytes = 20, // 增大缓冲区，避免溢出
+         .max_rx_bytes = 10, // 1byte ROM command + 8byte ROM number + 1byte device command
      };
-     esp_err_t ret = onewire_new_bus_rmt(&bus_config, &rmt_config, &bus);
-     if (ret != ESP_OK) {
-         ESP_LOGE(TAG, "Failed to create onewire bus: %s", esp_err_to_name(ret));
-         return;
-     }
+     ESP_ERROR_CHECK(onewire_new_bus_rmt(&bus_config, &rmt_config, &bus));
  
      onewire_device_iter_handle_t iter = NULL;
      onewire_device_t next_onewire_device;
      esp_err_t search_result = ESP_OK;
  
      // create 1-wire device iterator, which is used for device search
-     ret = onewire_new_device_iter(bus, &iter);
-     if (ret != ESP_OK) {
-         ESP_LOGE(TAG, "Failed to create device iterator: %s", esp_err_to_name(ret));
-         return;
-     }
-     
+     ESP_ERROR_CHECK(onewire_new_device_iter(bus, &iter));
      ESP_LOGI(TAG, "Device iterator created, start searching...");
      do {
          search_result = onewire_device_iter_get_next(iter, &next_onewire_device);
@@ -55,38 +46,24 @@ static void sensor_detect(void)
              }
          }
      } while (search_result != ESP_ERR_NOT_FOUND);
-     
-     onewire_del_device_iter(iter);
+     ESP_ERROR_CHECK(onewire_del_device_iter(iter));
      ESP_LOGI(TAG, "Searching done, %d DS18B20 device(s) found", s_ds18b20_device_num);
 }
 
 static void sensor_read(void)
 {
     for (int i = 0; i < s_ds18b20_device_num; i ++) {
-        esp_err_t ret = ds18b20_trigger_temperature_conversion(s_ds18b20s[i]);
-        if (ret != ESP_OK) {
-            ESP_LOGE(TAG, "Failed to trigger conversion for device %d: %s", i, esp_err_to_name(ret));
-            continue;
-        }
-        
-        ret = ds18b20_get_temperature(s_ds18b20s[i], &s_temperature);
-        if (ret != ESP_OK) {
-            ESP_LOGE(TAG, "Failed to get temperature from device %d: %s", i, esp_err_to_name(ret));
-            continue;
-        }
-        
+        ESP_ERROR_CHECK(ds18b20_trigger_temperature_conversion(s_ds18b20s[i]));
+        ESP_ERROR_CHECK(ds18b20_get_temperature(s_ds18b20s[i], &s_temperature));
         ESP_LOGI(TAG, "temperature read from DS18B20[%d]: %.2fC", i, s_temperature);
     }
 }
 
 static void sensor_readTask(void *pvParameters)
 {
-    // 等待一段时间让系统稳定
-    vTaskDelay(pdMS_TO_TICKS(2000));
-    
     while (1) {
         sensor_read();
-        vTaskDelay(pdMS_TO_TICKS(2000)); // 增加延时，减少干扰
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
 

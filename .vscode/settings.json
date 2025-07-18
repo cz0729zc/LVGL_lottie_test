@@ -14,7 +14,12 @@
     "bsp_lcd.h": "c",
     "esp_lvgl_port_knob.h": "c",
     "bsp_ltr390uv.h": "c",
-    "bsp_ds18b20.h": "c"
+    "bsp_ds18b20.h": "c",
+    "adc.h": "c",
+    "bsp_adc.h": "c",
+    "bsp_lvgl.h": "c",
+    "adc_cali.h": "c",
+    "adc_cali_scheme.h": "c"
   },
   "idf.openOcdConfigs": [
     "board/esp32s3-builtin.cfg"

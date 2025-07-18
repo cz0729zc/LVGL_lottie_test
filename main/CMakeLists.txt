@@ -5,6 +5,7 @@ idf_component_register(
         "./bsp/src/bsp_lvgl.c"
         "./bsp/src/bsp_ltr390uv.c"
         "./bsp/src/bsp_ds18b20.c"
+        "./bsp/src/bsp_adc.c"
     INCLUDE_DIRS
         "."
         "./bsp/include"
@@ -20,4 +21,5 @@ idf_component_register(
         k0i05__esp_type_utils
         espressif__ds18b20
         espressif__onewire_bus
+        esp_adc 
 )

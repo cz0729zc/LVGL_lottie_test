@@ -7,7 +7,7 @@
 #define EXAMPLE_LCD_H_RES   (128)
 #define EXAMPLE_LCD_V_RES   (160)
 #define EXAMPLE_LCD_DRAW_BUFF_DOUBLE (1)
-#define EXAMPLE_LCD_DRAW_BUFF_HEIGHT (80) // 增加缓冲区高度，为Lottie提供更多内存
+#define EXAMPLE_LCD_DRAW_BUFF_HEIGHT (50)
 
 extern esp_lcd_panel_io_handle_t lcd_io;
 extern esp_lcd_panel_handle_t lcd_panel;
@@ -18,7 +18,7 @@ esp_err_t app_lvgl_init(void)
     /* Initialize LVGL */
     const lvgl_port_cfg_t lvgl_cfg = {
         .task_priority = 4,         /* LVGL task priority */
-        .task_stack = 8192*4,       /* 恢复较大的任务栈，为Lottie提供足够空间 */
+        .task_stack = 8192*4,         /* LVGL task stack size */
         .task_affinity = -1,        /* LVGL task pinned to core (-1 is no affinity) */
         .task_max_sleep_ms = 500,   /* Maximum sleep in LVGL task */
         .timer_period_ms = 5        /* LVGL timer tick period in ms */
