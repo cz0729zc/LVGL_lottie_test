@@ -1,8 +1,73 @@
 dependencies:
+  espressif/ds18b20:
+    component_hash: 87a753636db56dbb42633b8fdd615c63c5e752ec9c9629e6386d8115f36efc30
+    dependencies:
+    - name: espressif/onewire_bus
+      registry_url: https://components.espressif.com
+      require: private
+      version: ^1.0.0
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 0.1.2
+  espressif/onewire_bus:
+    component_hash: 11729fd9a5de80225177a61e9cd77de91683b8ec300e83710d5327b666dbe884
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.0'
+    source:
+      registry_url: https://components.espressif.com
+      type: service
+    version: 1.0.4
   idf:
     source:
       type: idf
     version: 5.3.2
+  k0i05/esp_as7341:
+    component_hash: 4502379a4b81793bdd04c4798f370a0007c4d12efb0d009b2cda6e279721c6ad
+    dependencies:
+    - name: idf
+      require: private
+      version: '>5.3.0'
+    - name: k0i05/esp_type_utils
+      registry_url: https://components.espressif.com
+      require: private
+      version: '>=0.0.1'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 1.2.6
+  k0i05/esp_ltr390uv:
+    component_hash: 48fc72ea4e333f877a92edac91173a570e3c2e2f273ef05e1c1e63f43dc5b928
+    dependencies:
+    - name: idf
+      require: private
+      version: '>5.3.0'
+    - name: k0i05/esp_type_utils
+      registry_url: https://components.espressif.com
+      require: private
+      version: '>=0.0.1'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    targets:
+    - esp32
+    - esp32s3
+    version: 1.2.6
+  k0i05/esp_type_utils:
+    component_hash: 0315aa7577c96037b601be7499c4b434d32d4ae381e90308ac0da3323e3887dc
+    dependencies:
+    - name: idf
+      require: private
+      version: '>5.3.0'
+    source:
+      registry_url: https://components.espressif.com
+      type: service
+    targets:
+    - esp32
+    - esp32s3
+    version: 1.2.6
   lvgl/lvgl:
     dependencies: []
     source:
@@ -17,9 +82,12 @@ dependencies:
       type: service
     version: 0.0.1
 direct_dependencies:
+- espressif/ds18b20
 - idf
+- k0i05/esp_as7341
+- k0i05/esp_ltr390uv
 - lvgl/lvgl
 - teriyakigod/esp_lcd_st7735
-manifest_hash: ebde4b7a1109f98bf71c1331f9c50a2ef6e508b66ed25675c9db9f48051dd53e
+manifest_hash: c754b6ad40591e948f547157ba9eb7c8427856485758e05225ccd7108e8bb8c9
 target: esp32s3
 version: 2.0.0

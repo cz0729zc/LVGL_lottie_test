@@ -1,0 +1,6 @@
+Name: rlottie
+Description: A rlottie library
+Version: 0.2
+Requires:
+Libs: -L/usr/local/lib -lrlottie
+Cflags: -IC:/Program Files (x86)/test_lvgl2/include

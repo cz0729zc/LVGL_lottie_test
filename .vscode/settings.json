@@ -12,7 +12,9 @@
     "lv_rlottie.h": "c",
     "esp_check.h": "c",
     "bsp_lcd.h": "c",
-    "esp_lvgl_port_knob.h": "c"
+    "esp_lvgl_port_knob.h": "c",
+    "bsp_ltr390uv.h": "c",
+    "bsp_ds18b20.h": "c"
   },
   "idf.openOcdConfigs": [
     "board/esp32s3-builtin.cfg"

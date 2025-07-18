@@ -3,9 +3,12 @@ idf_component_register(
         "main.c"
         "./bsp/src/bsp_lcd.c"
         "./bsp/src/bsp_lvgl.c"
+        "./bsp/src/bsp_ltr390uv.c"
+        "./bsp/src/bsp_ds18b20.c"
     INCLUDE_DIRS
         "."
         "./bsp/include"
+        "./lottie_img/hex"
     REQUIRES
         driver
         esp_lcd
@@ -13,4 +16,8 @@ idf_component_register(
         esp_lvgl_port
         lvgl__lvgl
         esp_rlottie
+        k0i05__esp_ltr390uv
+        k0i05__esp_type_utils
+        espressif__ds18b20
+        espressif__onewire_bus
 )

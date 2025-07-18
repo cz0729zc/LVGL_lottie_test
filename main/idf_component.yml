@@ -14,7 +14,8 @@ dependencies:
   #   # `public` flag doesn't have an effect dependencies of the `main` component.
   #   # All dependencies of `main` are public by default.
   #   public: true
-  # k0i05/esp_ltr390uv: ^1.2.6
-  # k0i05/esp_as7341: ^1.2.6
+  k0i05/esp_ltr390uv: ^1.2.6
+  k0i05/esp_as7341: ^1.2.6
   teriyakigod/esp_lcd_st7735: ^0.0.1
+  espressif/ds18b20: ^0.1.2
   #espressif/esp_lvgl_port: ^2.6.0
