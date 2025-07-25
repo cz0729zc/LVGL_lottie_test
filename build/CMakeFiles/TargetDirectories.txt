@@ -952,3 +952,10 @@ D:/Development_Tool/ESP32/Project_V532/test_lvgl3/build/esp-idf/main/CMakeFiles/
 D:/Development_Tool/ESP32/Project_V532/test_lvgl3/build/esp-idf/main/CMakeFiles/install.dir
 D:/Development_Tool/ESP32/Project_V532/test_lvgl3/build/esp-idf/main/CMakeFiles/install/local.dir
 D:/Development_Tool/ESP32/Project_V532/test_lvgl3/build/esp-idf/main/CMakeFiles/install/strip.dir
+D:/Development_Tool/ESP32/Project_V532/test_lvgl3/build/esp-idf/ui_custom/CMakeFiles/__idf_ui_custom.dir
+D:/Development_Tool/ESP32/Project_V532/test_lvgl3/build/esp-idf/ui_custom/CMakeFiles/edit_cache.dir
+D:/Development_Tool/ESP32/Project_V532/test_lvgl3/build/esp-idf/ui_custom/CMakeFiles/rebuild_cache.dir
+D:/Development_Tool/ESP32/Project_V532/test_lvgl3/build/esp-idf/ui_custom/CMakeFiles/list_install_components.dir
+D:/Development_Tool/ESP32/Project_V532/test_lvgl3/build/esp-idf/ui_custom/CMakeFiles/install.dir
+D:/Development_Tool/ESP32/Project_V532/test_lvgl3/build/esp-idf/ui_custom/CMakeFiles/install/local.dir
+D:/Development_Tool/ESP32/Project_V532/test_lvgl3/build/esp-idf/ui_custom/CMakeFiles/install/strip.dir

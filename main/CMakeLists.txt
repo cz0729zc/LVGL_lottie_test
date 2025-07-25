@@ -6,6 +6,7 @@ idf_component_register(
         "./bsp/src/bsp_ltr390uv.c"
         "./bsp/src/bsp_ds18b20.c"
         "./bsp/src/bsp_adc.c"
+        ""
     INCLUDE_DIRS
         "."
         "./bsp/include"

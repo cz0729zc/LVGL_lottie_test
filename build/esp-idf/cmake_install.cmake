@@ -592,3 +592,8 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("D:/Development_Tool/ESP32/Project_V532/test_lvgl3/build/esp-idf/main/cmake_install.cmake")
 endif()
 
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("D:/Development_Tool/ESP32/Project_V532/test_lvgl3/build/esp-idf/ui_custom/cmake_install.cmake")
+endif()
+

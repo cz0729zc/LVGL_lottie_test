@@ -90,3 +90,4 @@ $<TARGET_FILE:__idf_espressif__onewire_bus>
 $<TARGET_FILE:__idf_espressif__ds18b20>
 $<TARGET_FILE:__idf_k0i05__esp_as7341>
 $<TARGET_FILE:__idf_main>
+$<TARGET_FILE:__idf_ui_custom>

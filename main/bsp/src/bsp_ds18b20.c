@@ -6,7 +6,8 @@
 #include "onewire_bus.h"
 #include "bsp_ds18b20.h"
 
-#define BSP_DS18B20_ONEWIRE_GPIO    18
+// #define BSP_DS18B20_ONEWIRE_GPIO    18
+#define BSP_DS18B20_ONEWIRE_GPIO    38
 #define BSP_DS18B20_MAX_DEVICES     2
 
 static int s_ds18b20_device_num = 0;

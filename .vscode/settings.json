@@ -19,7 +19,12 @@
     "bsp_adc.h": "c",
     "bsp_lvgl.h": "c",
     "adc_cali.h": "c",
-    "adc_cali_scheme.h": "c"
+    "adc_cali_scheme.h": "c",
+    "gui_guider.h": "c",
+    "events_init.h": "c",
+    "custom.h": "c",
+    "lv_font.h": "c",
+    "lv_buttonmatrix.h": "c"
   },
   "idf.openOcdConfigs": [
     "board/esp32s3-builtin.cfg"

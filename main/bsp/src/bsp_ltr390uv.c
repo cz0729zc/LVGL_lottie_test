@@ -5,8 +5,11 @@
 #include "freertos/task.h"
 
 #define BSP_LTR390UV_I2C_PORT I2C_NUM_0
-#define BSP_LTR390UV_SDA_GPIO GPIO_NUM_20
-#define BSP_LTR390UV_SCL_GPIO GPIO_NUM_21
+// #define BSP_LTR390UV_SDA_GPIO GPIO_NUM_20
+// #define BSP_LTR390UV_SCL_GPIO GPIO_NUM_21
+
+#define BSP_LTR390UV_SDA_GPIO GPIO_NUM_42
+#define BSP_LTR390UV_SCL_GPIO GPIO_NUM_41
 
 static ltr390uv_handle_t s_ltr390uv_hdl = NULL;
 static i2c_master_bus_handle_t s_i2c_bus_hdl = NULL;

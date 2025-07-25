@@ -24,6 +24,12 @@
  #include "esp_lvgl_port.h"
  //#include "lv_rlottie.h
 
+ #include "ui_custom/gui_guider.h"
+ #include "ui_custom/custom.h"
+ #include "ui_custom/events_init.h"
+ 
+ lv_ui guider_ui;
+
  /* LCD size */
  #define EXAMPLE_LCD_H_RES   (128)
  #define EXAMPLE_LCD_V_RES   (160)
@@ -74,62 +80,65 @@
      ESP_ERROR_CHECK(app_lcd_init());
      /* LVGL initialization */
      ESP_ERROR_CHECK(app_lvgl_init());
-     // DS18B20 初始化
-     ESP_ERROR_CHECK(bsp_ds18b20_init());
-     // LTR390UV 检测与初始化
-     ESP_ERROR_CHECK(bsp_ltr390uv_init());
+    //  // DS18B20 初始化
+    //  ESP_ERROR_CHECK(bsp_ds18b20_init());
+    //  // LTR390UV 检测与初始化
+    //  ESP_ERROR_CHECK(bsp_ltr390uv_init());
 
-     // ADC 初始化
-     bsp_adc_config_t adc_cfg = {
-        .channels = {
-            {ADC1_CHANNEL_0, 1}, // GPIO1
-            //{ADC1_CHANNEL_3, 4}, // GPIO4
-        },
-        .channel_num = 1,
-        .sample_freq_hz = 10,
-    };
-    bsp_adc_init(&adc_cfg);
-    //ADC 校准初始化
-    adc_cali_curve_fitting_config_t cali_config = {
-        .unit_id = ADC_UNIT_1,
-        .atten = ADC_ATTEN_DB_12,
-        .bitwidth = ADC_BITWIDTH_12,
-    };
-    esp_err_t cali_ret = adc_cali_create_scheme_curve_fitting(&cali_config, &adc_cali_handle);
-    if (cali_ret == ESP_OK) {
-        ESP_LOGI("ADC", "ADC 校准初始化成功");
-    } else {
-        ESP_LOGW("ADC", "ADC 校准初始化失败，使用原始值");
-    }
+    //  // ADC 初始化
+    //  bsp_adc_config_t adc_cfg = {
+    //     .channels = {
+    //         {ADC1_CHANNEL_0, 1}, // GPIO1
+    //         //{ADC1_CHANNEL_3, 4}, // GPIO4
+    //     },
+    //     .channel_num = 1,
+    //     .sample_freq_hz = 10,
+    // };
+    // bsp_adc_init(&adc_cfg);
+    // //ADC 校准初始化
+    // adc_cali_curve_fitting_config_t cali_config = {
+    //     .unit_id = ADC_UNIT_1,
+    //     .atten = ADC_ATTEN_DB_12,
+    //     .bitwidth = ADC_BITWIDTH_12,
+    // };
+    // esp_err_t cali_ret = adc_cali_create_scheme_curve_fitting(&cali_config, &adc_cali_handle);
+    // if (cali_ret == ESP_OK) {
+    //     ESP_LOGI("ADC", "ADC 校准初始化成功");
+    // } else {
+    //     ESP_LOGW("ADC", "ADC 校准初始化失败，使用原始值");
+    // }
  
     //  /* 创建传感器任务,需放在屏幕显示前*/
     //  bsp_ds18b20_start_read_task(3, 4096);
     //  bsp_ltr390uv_start_read_task(4, 4096);
-     bsp_adc_start();
+    // bsp_adc_start();
      /* Show LVGL objects */
-    //  app_main_display();
+     // app_main_display();
+    /*****GUI界面初始化和事件初始化***/
+    setup_ui(&guider_ui);
+    events_init(&guider_ui);
 
-    uint16_t values[BSP_ADC_MAX_CHANNELS];
-    int ch_num = 0;
-    while (1)
-    {
-        bsp_adc_get_latest(values, &ch_num);
-        for (int i = 0; i < ch_num; ++i) {
-            uint16_t adc_val = values[i];
-            int voltage = 0;
-            if (adc_cali_handle) {
-                adc_cali_raw_to_voltage(adc_cali_handle, adc_val, &voltage);
-            } else {
-                // 校准失败时，简单线性换算
-                voltage = (int)(adc_val * 3300 / 4095);
-            }
-            float percent = (voltage - 150.0f) * 100.0f / (2450.0f - 150.0f);
-            if (percent < 0) percent = 0;
-                    if (percent > 100) percent = 100;
-            printf("ADC[%d]=%d, Voltage=%.2f V, Percent=%.1f%%\n", i, adc_val, voltage / 1000.0f, percent);
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
+    // uint16_t values[BSP_ADC_MAX_CHANNELS];
+    // int ch_num = 0;
+    // while (1)
+    // {
+    //     bsp_adc_get_latest(values, &ch_num);
+    //     for (int i = 0; i < ch_num; ++i) {
+    //         uint16_t adc_val = values[i];
+    //         int voltage = 0;
+    //         if (adc_cali_handle) {
+    //             adc_cali_raw_to_voltage(adc_cali_handle, adc_val, &voltage);
+    //         } else {
+    //             // 校准失败时，简单线性换算
+    //             voltage = (int)(adc_val * 3300 / 4095);
+    //         }
+    //         float percent = (voltage - 150.0f) * 100.0f / (2450.0f - 150.0f);
+    //         if (percent < 0) percent = 0;
+    //                 if (percent > 100) percent = 100;
+    //         printf("ADC[%d]=%d, Voltage=%.2f V, Percent=%.1f%%\n", i, adc_val, voltage / 1000.0f, percent);
+    //     }
+    //     vTaskDelay(pdMS_TO_TICKS(1000));
+    // }
 
 
  }

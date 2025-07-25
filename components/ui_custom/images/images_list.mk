@@ -1,0 +1,1 @@
+GEN_CSRCS += _background1_RGB565_128x160.c screen_animimg_1Chest_Open1_tresh.c screen_animimg_1Chest_Open2_tresh.c screen_animimg_1Chest_Open3_tresh.c screen_animimg_1Chest_Open4_tresh.c screen_animimg_1Chest_Open5_tresh.c screen_animimg_1Chest_Open6_tresh.c
