@@ -22,7 +22,7 @@
 
  #include "lvgl.h"
  #include "esp_lvgl_port.h"
- //#include "lv_rlottie.h
+ //#include "lv_rlottie.h"
 
  #include "ui_custom/gui_guider.h"
  #include "ui_custom/custom.h"
@@ -75,14 +75,14 @@
  
  void app_main(void)
  {
-    //  /* LCD HW initialization */
-    //  ESP_ERROR_CHECK(app_lcd_init());
-    //  /* LVGL initialization */
-    //  ESP_ERROR_CHECK(app_lvgl_init());
+     /* LCD HW initialization */
+     ESP_ERROR_CHECK(app_lcd_init());
+     /* LVGL initialization */
+     ESP_ERROR_CHECK(app_lvgl_init());
     //  // DS18B20 初始化
     //  ESP_ERROR_CHECK(bsp_ds18b20_init());
-    //  // LTR390UV 检测与初始化
-    //  ESP_ERROR_CHECK(bsp_ltr390uv_init());
+     // LTR390UV 检测与初始化
+     //ESP_ERROR_CHECK(bsp_ltr390uv_init());
 
      // ADC 初始化
      bsp_adc_config_t adc_cfg = {
@@ -124,14 +124,14 @@
     }
  
     //  /* 创建传感器任务,需放在屏幕显示前*/
-    //  bsp_ds18b20_start_read_task(3, 4096);
-    //  bsp_ltr390uv_start_read_task(4, 4096);
+    // bsp_ds18b20_start_read_task(3, 4096);
+    //bsp_ltr390uv_start_read_task(4, 4096);
     bsp_adc_start();
      /* Show LVGL objects */
      // app_main_display();
     /*****GUI界面初始化和事件初始化***/
-    // setup_ui(&guider_ui);
-    // events_init(&guider_ui);
+    setup_ui(&guider_ui);
+    events_init(&guider_ui);
 
     uint16_t values[BSP_ADC_MAX_CHANNELS];
     int ch_num = 0;
@@ -182,4 +182,4 @@
     }
 
 
- }
+    }

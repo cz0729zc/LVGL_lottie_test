@@ -1,6 +1,6 @@
 {
   "idf.flashType": "UART",
-  "idf.portWin": "COM18",
+  "idf.portWin": "COM26",
   "files.associations": {
     "*.c": "c",
     "*.txt": "txt",
@@ -24,7 +24,8 @@
     "events_init.h": "c",
     "custom.h": "c",
     "lv_font.h": "c",
-    "lv_buttonmatrix.h": "c"
+    "lv_buttonmatrix.h": "c",
+    "esp_lvgl_port_compatibility.h": "c"
   },
   "idf.openOcdConfigs": [
     "board/esp32s3-builtin.cfg"

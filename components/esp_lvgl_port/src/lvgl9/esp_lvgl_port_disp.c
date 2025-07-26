@@ -18,6 +18,9 @@
  #include "esp_lcd_panel_ops.h"
  #include "esp_lvgl_port.h"
  #include "esp_lvgl_port_priv.h"
+
+// BGR565 -> BRG565（R和B互换，G不变）
+#define BGR565_TO_BRG565(c)  ( ((c & 0x001F) << 11) | (c & 0x07E0) | ((c & 0xF800) >> 11) )
  
  #define LVGL_PORT_PPA   (CONFIG_LVGL_PORT_ENABLE_PPA)
  
@@ -672,6 +675,16 @@
          size_t len = lv_area_get_size(area);
          lv_draw_sw_rgb565_swap(color_map, len);
      }
+
+    //  //添加颜色转换
+    //  {
+    //     size_t len = lv_area_get_size(area);
+    //     uint16_t *p = (uint16_t *)color_map;
+    //     for (size_t i = 0; i < len; i++) {
+    //         p[i] = BGR565_TO_BRG565(p[i]);
+    //     }
+    // }
+
      /* Transfer data in buffer for monochromatic screen */
      if (disp_ctx->flags.monochrome) {
          _lvgl_port_transform_monochrome(drv, area, &color_map);
