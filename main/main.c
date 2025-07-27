@@ -12,7 +12,6 @@
  #include "bsp_lcd.h"
  #include "bsp_lvgl.h"
  #include "bsp_ltr390uv.h"
- #include "bsp_as7341.h"
  #include "bsp_ds18b20.h"
  #include "bsp_adc.h"
  #include "esp_adc/adc_cali.h"
@@ -43,13 +42,13 @@
     //  ESP_ERROR_CHECK(bsp_ltr390uv_init());
     /*****BSP应用层代码初始化*********/
     adc_app_init();
-    app_wifi_init();
+    //app_wifi_init();
     /*****创建任务*********/
 
     // bsp_ds18b20_start_read_task(3, 4096);
     //bsp_ltr390uv_start_read_task(4, 4096);
     adc_app_task_start_read_task(5, 4096);
-    app_wifi_wait_connected();
+    //app_wifi_wait_connected();
      /* Show LVGL objects */
      // app_main_display();
     // /*****GUI界面初始化和事件初始化***/

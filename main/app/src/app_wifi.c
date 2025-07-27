@@ -6,8 +6,8 @@
 #include "esp_wifi.h"
 #include "esp_event.h"
 #include "nvs_flash.h"
-#include <network_provisioning/manager.h>
-#include <network_provisioning/scheme_softap.h>
+// #include <network_provisioning/manager.h>
+// #include <network_provisioning/scheme_softap.h>
 
 static const int WIFI_CONNECTED_EVENT = BIT0;
 static EventGroupHandle_t wifi_event_group = NULL;
@@ -57,38 +57,38 @@ esp_err_t app_wifi_init(void)
     esp_netif_create_default_wifi_ap(); // 软AP接口
     esp_netif_create_default_wifi_sta(); // STA接口
 
-    network_prov_mgr_config_t prov_config = {
-        .scheme = network_prov_scheme_softap,
-        .scheme_event_handler = NETWORK_PROV_EVENT_HANDLER_NONE
-    };
+    // network_prov_mgr_config_t prov_config = {
+    //     .scheme = network_prov_scheme_softap,
+    //     .scheme_event_handler = NETWORK_PROV_EVENT_HANDLER_NONE
+    // };
 
-    ESP_ERROR_CHECK(network_prov_mgr_init(prov_config));
+    // ESP_ERROR_CHECK(network_prov_mgr_init(prov_config));
 
-    bool provisioned = false;
-    ESP_ERROR_CHECK(network_prov_mgr_is_wifi_provisioned(&provisioned));
+    // bool provisioned = false;
+    // ESP_ERROR_CHECK(network_prov_mgr_is_wifi_provisioned(&provisioned));
 
-    if (!provisioned) {
-        ESP_LOGI(TAG, "Starting provisioning");
+    // if (!provisioned) {
+    //     ESP_LOGI(TAG, "Starting provisioning");
 
-        char service_name[12] = "wifi_test";
-        const char *pop = "abcd1234";
-        network_prov_security_t security = NETWORK_PROV_SECURITY_1;
-        network_prov_security1_params_t *sec_params = pop;
+    //     char service_name[12] = "wifi_test";
+    //     const char *pop = "abcd1234";
+    //     network_prov_security_t security = NETWORK_PROV_SECURITY_1;
+    //     network_prov_security1_params_t *sec_params = pop;
 
-        const char *service_key = "88888888"; // SoftAP密码
+    //     const char *service_key = "88888888"; // SoftAP密码
 
-        ESP_ERROR_CHECK(network_prov_mgr_start_provisioning(
-            security,
-            (const void *)&sec_params,
-            service_name,
-            service_key
-        ));
+    //     ESP_ERROR_CHECK(network_prov_mgr_start_provisioning(
+    //         security,
+    //         (const void *)&sec_params,
+    //         service_name,
+    //         service_key
+    //     ));
 
-    } else {
-        ESP_LOGI(TAG, "Already provisioned. Starting WiFi...");
-        network_prov_mgr_deinit();
-        wifi_init_sta();
-    }
+    // } else {
+    //     ESP_LOGI(TAG, "Already provisioned. Starting WiFi...");
+    //     network_prov_mgr_deinit();
+    //     wifi_init_sta();
+    // }
 
     return ESP_OK;
 }
