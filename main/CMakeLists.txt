@@ -6,14 +6,17 @@ idf_component_register(
         "./bsp/src/bsp_ltr390uv.c"
         "./bsp/src/bsp_ds18b20.c"
         "./bsp/src/bsp_adc.c"
-        ""
+        "./app/src/app_adc.c"
+        "./app/src/app_wifi.c"
     INCLUDE_DIRS
         "."
         "./bsp/include"
-        "./lottie_img/hex"
+        "./app/include"
     REQUIRES
         driver
+        nvs_flash
         esp_lcd
+        esp_wifi
         teriyakigod__esp_lcd_st7735
         esp_lvgl_port
         lvgl__lvgl
@@ -23,4 +26,5 @@ idf_component_register(
         espressif__ds18b20
         espressif__onewire_bus
         esp_adc 
+        espressif__network_provisioning
 )

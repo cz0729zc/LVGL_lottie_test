@@ -1,42 +1,9 @@
 {
-  "idf.flashType": "UART",
-  "idf.portWin": "COM26",
+  "C_Cpp.intelliSenseEngine": "default",
   "files.associations": {
     "*.c": "c",
     "*.txt": "txt",
-    "thorvg_capi.h": "c",
-    "rlottie.h": "c",
-    "esp_lvgl_port.h": "c",
-    "lvgl.h": "c",
-    "esp_lvgl_port_disp.h": "c",
-    "lv_rlottie.h": "c",
-    "esp_check.h": "c",
-    "bsp_lcd.h": "c",
-    "esp_lvgl_port_knob.h": "c",
-    "bsp_ltr390uv.h": "c",
-    "bsp_ds18b20.h": "c",
-    "adc.h": "c",
-    "bsp_adc.h": "c",
-    "bsp_lvgl.h": "c",
-    "adc_cali.h": "c",
-    "adc_cali_scheme.h": "c",
-    "gui_guider.h": "c",
-    "events_init.h": "c",
-    "custom.h": "c",
-    "lv_font.h": "c",
-    "lv_buttonmatrix.h": "c",
-    "esp_lvgl_port_compatibility.h": "c"
-  },
-  "idf.openOcdConfigs": [
-    "board/esp32s3-builtin.cfg"
-  ],
-  "idf.customExtraVars": {
-    "IDF_TARGET": "esp32s3"
-  },
-  "clangd.path": "D:\\Development_Tool\\ESP32\\.espressif\\tools\\esp-clang\\16.0.1-fe4f10a809\\esp-clang\\bin\\clangd.exe",
-  "clangd.arguments": [
-    "--background-index",
-    "--query-driver=D:\\Development_Tool\\ESP32\\.espressif\\tools\\xtensa-esp-elf\\esp-13.2.0_20240530\\xtensa-esp-elf\\bin\\xtensa-esp32s3-elf-gcc.exe",
-    "--compile-commands-dir=d:\\Development_Tool\\ESP32\\Project_V532\\test_lvgl3\\build"
-  ]
+    "manager.h": "c",
+    "protocomm.h": "c"
+  }
 }

@@ -10,6 +10,16 @@ dependencies:
       registry_url: https://components.espressif.com/
       type: service
     version: 0.1.2
+  espressif/network_provisioning:
+    component_hash: 21c45dd9cf570c12671e1678ddcfabe77471afa979bcff207a8478b45b58667a
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.1'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 1.0.5
   espressif/onewire_bus:
     component_hash: 11729fd9a5de80225177a61e9cd77de91683b8ec300e83710d5327b666dbe884
     dependencies:
@@ -83,11 +93,12 @@ dependencies:
     version: 0.0.1
 direct_dependencies:
 - espressif/ds18b20
+- espressif/network_provisioning
 - idf
 - k0i05/esp_as7341
 - k0i05/esp_ltr390uv
 - lvgl/lvgl
 - teriyakigod/esp_lcd_st7735
-manifest_hash: c754b6ad40591e948f547157ba9eb7c8427856485758e05225ccd7108e8bb8c9
+manifest_hash: 78e0840d936b46d17d114863edcb076fb1b2eda659c2788c85a66804d33c9fbc
 target: esp32s3
 version: 2.0.0
