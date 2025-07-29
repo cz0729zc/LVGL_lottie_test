@@ -19,6 +19,10 @@
  #include "app_adc.h"
  #include "app_wifi.h"
 
+#include "bsp_iis_MAX98357A.h"
+#include "freertos/task.h"
+#include <math.h>
+ 
  #include "lvgl.h"
  #include "esp_lvgl_port.h"
  //#include "lv_rlottie.h"
@@ -31,18 +35,58 @@
 
  lv_ui guider_ui;
 
- void app_main(void)
+#define SAMPLE_RATE     (44100)
+#define BUFFER_SIZE     (1024)
+#define SINE_FREQ       (440.0) // A4 note
+
+static void audio_play_task(void *args)
+{
+    int16_t *audio_buffer = malloc(BUFFER_SIZE * sizeof(int16_t) * 2); // Stereo
+    if (!audio_buffer) {
+        ESP_LOGE("AUDIO_TASK", "Failed to allocate memory for audio buffer");
+        vTaskDelete(NULL);
+        return;
+    }
+
+    double phase = 0.0;
+    double phase_step = 2.0 * M_PI * SINE_FREQ / SAMPLE_RATE;
+
+    while (1) {
+        for (int i = 0; i < BUFFER_SIZE; i++) {
+            int16_t sample = (int16_t)(sin(phase) * INT16_MAX * 0.5);
+            audio_buffer[i * 2] = sample; // Left channel
+            audio_buffer[i * 2 + 1] = sample; // Right channel
+            phase += phase_step;
+            if (phase >= 2.0 * M_PI) {
+                phase -= 2.0 * M_PI;
+            }
+        }
+
+        size_t bytes_written = 0;
+        esp_err_t err = bsp_iis_max98357a_write(audio_buffer, BUFFER_SIZE * sizeof(int16_t) * 2, &bytes_written, portMAX_DELAY);
+        if (err != ESP_OK) {
+            ESP_LOGE("AUDIO_TASK", "I2S write failed: %s", esp_err_to_name(err));
+        }
+    }
+
+    free(audio_buffer);
+    vTaskDelete(NULL);
+}
+ 
+  void app_main(void)
  {
     /*****BSP驱动层代码初始化*********/
      /* LCD HW initialization */
-    //  ESP_ERROR_CHECK(app_lcd_init());
-    //  /* LVGL initialization */
-    //  ESP_ERROR_CHECK(app_lvgl_init());
+     ESP_ERROR_CHECK(app_lcd_init());
+     /* LVGL initialization */
+     ESP_ERROR_CHECK(app_lvgl_init());
     // /* DS18B20 初始化 */
     //  ESP_ERROR_CHECK(bsp_ds18b20_init());
     // /* LTR390UV 检测与初始化*/
     //  ESP_ERROR_CHECK(bsp_ltr390uv_init());
-    /*****BSP应用层代码初始化*********/
+    /* I2S audio initialization */
+    ESP_ERROR_CHECK(bsp_iis_max98357a_init(SAMPLE_RATE));
+   /*****BSP应用层代码初始化*********/
     // adc_app_init();
     
     // app_controller_init();
@@ -53,18 +97,17 @@
     //app_wifi_wait_connected();
     
     // 方式2: 创建SoftAP热点（注释掉上面两行，取消注释下面一行）
-    app_wifi_init_ap();
+    // app_wifi_init_ap();
 
     /*****创建任务*********/
+   xTaskCreate(audio_play_task, "audio_play_task", 4096, NULL, 5, NULL);
 
     // bsp_ds18b20_start_read_task(3, 4096);
     //bsp_ltr390uv_start_read_task(4, 4096);
     // adc_app_task_start_read_task(5, 4096);
     // app_controller_start_task(6, 4096);  // 启动控制器任务
     //app_wifi_wait_connected();
-     /* Show LVGL objects */
-     // app_main_display();
-    // /*****GUI界面初始化和事件初始化***/
-    //  setup_ui(&guider_ui);
-    //  events_init(&guider_ui);
+    /*****GUI界面初始化和事件初始化***/
+     setup_ui(&guider_ui);
+     events_init(&guider_ui);
 }

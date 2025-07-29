@@ -15,10 +15,16 @@
     "bsp_adc.h": "c",
     "app_adc.h": "c",
     "adc_cali_scheme.h": "c",
-    "app_wifi.h": "c"
+    "app_wifi.h": "c",
+    "freertos.h": "c",
+    "adc.h": "c",
+    "esp_check.h": "c",
+    "esp_log.h": "c",
+    "i2s_std.h": "c",
+    "bsp_iis_max98357a.h": "c"
   },
   "idf.flashType": "UART",
-  "idf.portWin": "COM26",
+  "idf.portWin": "COM18",
   "clangd.path": "D:\\Development_Tool\\ESP32\\.espressif\\tools\\esp-clang\\16.0.1-fe4f10a809\\esp-clang\\bin\\clangd.exe",
   "clangd.arguments": [
     "--background-index",
