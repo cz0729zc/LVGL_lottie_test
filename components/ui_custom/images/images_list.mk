@@ -1,1 +1,1 @@
-GEN_CSRCS += _background1_RGB565_128x160.c screen_animimg_1Chest_Open1_tresh.c screen_animimg_1Chest_Open2_tresh.c screen_animimg_1Chest_Open3_tresh.c screen_animimg_1Chest_Open4_tresh.c screen_animimg_1Chest_Open5_tresh.c screen_animimg_1Chest_Open6_tresh.c
+GEN_CSRCS += _background1_RGB565_128x160.c _Walk21_RGB565A8_24x25.c _Walk22_RGB565A8_24x25.c _Walk26_RGB565A8_24x25.c _background2_RGB565A8_128x160.c _Chest_Open1_RGB565A8_22x20.c _Chest_Open2_RGB565A8_22x20.c _Chest_Open3_RGB565A8_22x20.c

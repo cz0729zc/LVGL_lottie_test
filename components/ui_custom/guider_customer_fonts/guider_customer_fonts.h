@@ -13,8 +13,7 @@
 extern "C" {
 #endif
 
-// #include "lv_font.h"
-#include "src/font/lv_font.h"
+#include "lv_font.h"
 
 #ifdef __cplusplus
 }

@@ -94,11 +94,3 @@ void digital_clock_count(int * hour, int * minute, int * seconds, char * meridie
 }
 
 
-const lv_image_dsc_t * screen_animimg_1_imgs[6] = {
-    &screen_animimg_1Chest_Open1_tresh,
-    &screen_animimg_1Chest_Open2_tresh,
-    &screen_animimg_1Chest_Open3_tresh,
-    &screen_animimg_1Chest_Open4_tresh,
-    &screen_animimg_1Chest_Open5_tresh,
-    &screen_animimg_1Chest_Open6_tresh,
-};

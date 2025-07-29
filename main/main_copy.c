@@ -49,11 +49,11 @@
 
     // 选择使用STA模式或SoftAP模式
     // 方式1: 使用STA模式连接到现有WiFi网络
-    //app_wifi_init_sta();
-    //app_wifi_wait_connected();
+    // app_wifi_init();
+    // app_wifi_wait_connected();
     
     // 方式2: 创建SoftAP热点（注释掉上面两行，取消注释下面一行）
-    app_wifi_init_ap();
+    //wifi_init_softap();
 
     /*****创建任务*********/
 
