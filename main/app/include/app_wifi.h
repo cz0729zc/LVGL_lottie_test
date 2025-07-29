@@ -1,12 +1,15 @@
-#ifndef _APP_WIFI_H_
-#define _APP_WIFI_H_
+#ifndef APP_WIFI_H
+#define APP_WIFI_H
 
 #include "esp_err.h"
 
-// 初始化WiFi配网（自动判断是否已配网，未配网则进入配网流程）
-esp_err_t app_wifi_init(void);
+// 添加SoftAP相关配置定义
+#define EXAMPLE_ESP_WIFI_SSID      "ESP32_SoftAP"
+#define EXAMPLE_ESP_WIFI_PASS      "123456789"
+#define EXAMPLE_ESP_WIFI_CHANNEL   1
+#define EXAMPLE_MAX_STA_CONN       4
 
-// 阻塞等待WiFi连接成功
+void app_wifi_init_sta(void);
+void app_wifi_init_ap(void);
 void app_wifi_wait_connected(void);
-
 #endif

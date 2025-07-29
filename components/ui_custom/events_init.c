@@ -19,5 +19,6 @@
 
 void events_init(lv_ui *ui)
 {
-
+    // events_init_screen(ui);
+    // events_init_screen_1(ui);
 }

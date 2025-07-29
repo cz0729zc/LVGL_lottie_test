@@ -3,7 +3,20 @@
   "files.associations": {
     "*.c": "c",
     "*.txt": "txt",
-    "manager.h": "c",
-    "protocomm.h": "c"
-  }
+    "esp_wifi.h": "c",
+    "esp_event.h": "c",
+    "gui_guider.h": "c",
+    "custom.h": "c",
+    "lv_rlottie.h": "c",
+    "math.h": "c",
+    "app_controller.h": "c",
+    "adc_cali.h": "c",
+    "esp_netif.h": "c",
+    "bsp_adc.h": "c",
+    "app_adc.h": "c",
+    "adc_cali_scheme.h": "c",
+    "app_wifi.h": "c"
+  },
+  "idf.flashType": "UART",
+  "idf.portWin": "COM26"
 }
