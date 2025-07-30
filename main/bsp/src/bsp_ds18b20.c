@@ -5,6 +5,7 @@
 #include "ds18b20.h"
 #include "onewire_bus.h"
 #include "bsp_ds18b20.h"
+#include "app_controller.h"
 
 // #define BSP_DS18B20_ONEWIRE_GPIO    18
 #define BSP_DS18B20_ONEWIRE_GPIO    38
@@ -64,6 +65,7 @@ static void sensor_readTask(void *pvParameters)
 {
     while (1) {
         sensor_read();
+        app_controller_notify_temp_data(s_temperature);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }

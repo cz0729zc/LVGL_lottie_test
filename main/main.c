@@ -32,7 +32,8 @@
  #include "ui_custom/events_init.h"
  
  #include "app_controller.h"
-
+ #include "app_anim.h"
+ 
  lv_ui guider_ui;
 
 #define SAMPLE_RATE     (44100)
@@ -81,15 +82,16 @@ static void audio_play_task(void *args)
      /* LVGL initialization */
      ESP_ERROR_CHECK(app_lvgl_init());
     // /* DS18B20 初始化 */
-    //  ESP_ERROR_CHECK(bsp_ds18b20_init());
+    // ESP_ERROR_CHECK(bsp_ds18b20_init());
+
     // /* LTR390UV 检测与初始化*/
     //  ESP_ERROR_CHECK(bsp_ltr390uv_init());
     /* I2S audio initialization */
-    ESP_ERROR_CHECK(bsp_iis_max98357a_init(SAMPLE_RATE));
+    //ESP_ERROR_CHECK(bsp_iis_max98357a_init(SAMPLE_RATE));
    /*****BSP应用层代码初始化*********/
-    // adc_app_init();
-    
-    // app_controller_init();
+    adc_app_init();
+
+    app_controller_init();
 
     // 选择使用STA模式或SoftAP模式
     // 方式1: 使用STA模式连接到现有WiFi网络
@@ -100,14 +102,15 @@ static void audio_play_task(void *args)
     // app_wifi_init_ap();
 
     /*****创建任务*********/
-   xTaskCreate(audio_play_task, "audio_play_task", 4096, NULL, 5, NULL);
+   //xTaskCreate(audio_play_task, "audio_play_task", 4096, NULL, 5, NULL);
 
-    // bsp_ds18b20_start_read_task(3, 4096);
+    //bsp_ds18b20_start_read_task(3, 4096);
     //bsp_ltr390uv_start_read_task(4, 4096);
-    // adc_app_task_start_read_task(5, 4096);
-    // app_controller_start_task(6, 4096);  // 启动控制器任务
+     adc_app_task_start_read_task(5, 4096);
+     app_controller_start_task(6, 4096);  // 启动控制器任务
     //app_wifi_wait_connected();
     /*****GUI界面初始化和事件初始化***/
-     setup_ui(&guider_ui);
-     events_init(&guider_ui);
+    setup_ui(&guider_ui);
+    events_init(&guider_ui);
+    app_anim_init(&guider_ui); // 初始化动画模块
 }

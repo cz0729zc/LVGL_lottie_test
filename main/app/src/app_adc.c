@@ -20,7 +20,7 @@ void adc_app_init(void)
             {ADC1_CHANNEL_0, 1}, // GPIO1
             {ADC1_CHANNEL_1, 2}, // GPIO2
         },
-        .channel_num = 2,
+        .channel_num = 1,
         .sample_freq_hz = 10,
     };
     bsp_adc_init(&adc_cfg);
@@ -57,56 +57,53 @@ void adc_app_task(void *param)
 {
     uint16_t values[BSP_ADC_MAX_CHANNELS];
     int ch_num = 0;
+    float last_percent[BSP_ADC_MAX_CHANNELS] = {0};  // 记录上一次百分比值
+    const float percent_threshold = 5.0f;            // 变化阈值
     float percent_ch0 = 0.0f, percent_ch1 = 0.0f;
-    
+
     while (1)
     {
         bsp_adc_get_latest(values, &ch_num);
-        
-        // 重置百分比值
-        percent_ch0 = 0.0f;
-        percent_ch1 = 0.0f;
-        
+
         for (int i = 0; i < ch_num; ++i) {
             uint16_t adc_val = values[i];
             int voltage = 0;
 
-            // 根据通道选择对应的校准句柄
+            // 获取校准句柄
             adc_cali_handle_t current_cali_handle = NULL;
-            if (i == 0) {
-                current_cali_handle = adc_cali_handle_ch0;
-            } else if (i == 1) {
-                current_cali_handle = adc_cali_handle_ch1;
-            }
+            if (i == 0) current_cali_handle = adc_cali_handle_ch0;
+            else if (i == 1) current_cali_handle = adc_cali_handle_ch1;
 
             if (current_cali_handle) {
                 adc_cali_raw_to_voltage(current_cali_handle, adc_val, &voltage);
             } else {
-                if (i == 0) {
-                    voltage = (int)(adc_val * 3300 / 4095);
-                } else if (i == 1) {
-                    voltage = (int)(adc_val * 1750 / 4095);
-                }
+                voltage = (i == 0) ? (adc_val * 3300 / 4095) : (adc_val * 1750 / 4095);
             }
 
+            // 计算百分比
             float percent = 0.0f;
             if (i == 0) {
-                percent = (voltage - 0.0f) * 100.0f / 3300.0f;
-                percent_ch0 = percent;
+                percent = (voltage * 100.0f / 3300.0f);
             } else if (i == 1) {
                 percent = (voltage - 25.0f) * 100.0f / (1600.0f - 25.0f);
-                percent_ch1 = percent;
             }
 
+            // 限制范围
             if (percent < 0) percent = 0;
             if (percent > 100) percent = 100;
 
-            ESP_LOGI(TAG, "ADC[%d]=%d, Voltage=%.2f V, Percent=%.1f%%", i, adc_val, voltage / 1000.0f, percent);
-        }
-        
-        // 通知应用控制器新的ADC数据
-        app_controller_notify_adc_data(percent_ch0, percent_ch1);
+            // // 若与上次差异超过5%，则打印
+            // if (fabsf(percent - last_percent[i]) > percent_threshold) {
+            //     ESP_LOGI(TAG, "Percent[%d]=%.1f%%", i, 100.0f - percent);
+            //     last_percent[i] = percent;  // 更新历史值
+            // }
 
+            // 更新通知数据（仅支持前两个通道）
+            if (i == 0) percent_ch0 = percent;
+            else if (i == 1) percent_ch1 = percent;
+        }
+
+        app_controller_notify_adc_data(100.0f - percent_ch0, 100.0f - percent_ch1);
         vTaskDelay(pdMS_TO_TICKS(500));
     }
 }

@@ -10,6 +10,7 @@ idf_component_register(
         "./app/src/app_adc.c"
         "./app/src/app_wifi.c"
         "./app/src/app_controller.c"
+        "./app/src/app_anim.c"
     INCLUDE_DIRS
         "."
         "./bsp/include"
