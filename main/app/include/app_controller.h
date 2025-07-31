@@ -22,6 +22,7 @@ typedef enum {
     SPRITE_STATE_AT_HOME_SLEEPING,      /**< 在家且睡觉 */
     SPRITE_STATE_AWAY_NORMAL,           /**< 正常外出 */
     SPRITE_STATE_AWAY_LOST,             /**< 因环境恶劣（如干旱）而迷路 */
+    SPRITE_STATE_PREPARING_TO_GO_HOME,  /**< 准备回家（拍一拍后的中间状态） */
     SPRITE_STATE_EVENT_FLOODED,         /**< 因环境恶劣（如过湿）而触发淹水事件 */
 } sprite_state_t;
 
@@ -36,7 +37,10 @@ typedef enum {
 #define SENSOR_LIGHT_DATA_READY  BIT2   /**< 光照数据准备就绪事件 */
 #define WIFI_CONNECTED           BIT3   /**< Wi-Fi连接成功事件 */
 #define USER_INTERACTION_TAP     BIT4   /**< 用户输入事件（拍一拍） */
-#define TIMER_EVENT_48H_CYCLE    BIT5   /**< 周期性定时器事件（用于概率模型） */
+// --- 定时器事件 (BIT5-BIT7) ---
+#define EVENT_TIMER_5_MIN_EXPIRED    BIT5   /**< 5分钟回家倒计时结束事件 */
+#define EVENT_TIMER_48_HOUR_EXPIRED  BIT6   /**< 48小时提醒周期到达事件 */
+// --- 内部事件 (BIT8+) ---
 
 
 /**
@@ -89,8 +93,13 @@ void app_controller_notify_wifi_connected(void);
 void app_controller_notify_tap(void);
 
 /**
- * @brief 通知控制器周期性定时器事件已触发
+ * @brief 向控制器发送一个通用事件
+ *
+ * 这是一个更通用的通知函数，允许任何模块将指定的事件位
+ * 设置到控制器的事件组中。
+ *
+ * @param event_bit 要设置的事件位 (例如 EVENT_TIMER_5_MIN_EXPIRED)。
  */
-void app_controller_notify_timer_event(void);
+void app_controller_notify_event(EventBits_t event_bit);
 
 #endif

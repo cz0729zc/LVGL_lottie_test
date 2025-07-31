@@ -33,6 +33,7 @@
  
  #include "app_controller.h"
  #include "app_anim.h"
+ #include "app_timer_service.h"
  
  lv_ui guider_ui;
 
@@ -92,6 +93,7 @@ static void audio_play_task(void *args)
     adc_app_init();
 
     app_controller_init();
+    app_timer_service_init();
 
     // 选择使用STA模式或SoftAP模式
     // 方式1: 使用STA模式连接到现有WiFi网络

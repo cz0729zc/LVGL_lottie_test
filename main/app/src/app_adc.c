@@ -6,6 +6,7 @@
 #include "freertos/task.h"
 #include "driver/adc.h"
 #include "app_controller.h"  // 添加控制器头文件
+#include "app_filter.h"      // 添加滤波器头文件
 #include <math.h>
 
 static adc_cali_handle_t adc_cali_handle_ch0 = NULL;
@@ -70,6 +71,10 @@ void adc_app_task(void *param)
     const float percent_threshold = 5.0f;            // 变化阈值
     float percent_ch0 = 0.0f, percent_ch1 = 0.0f;
 
+    // 为土壤湿度传感器(CH0)创建一个中位值滤波器实例
+    static median_filter_t soil_humidity_filter;
+    median_filter_init(&soil_humidity_filter);
+
    // 震动检测相关变量
    static int last_vibration_voltage = 3300; // 上一次的电压值，初始化为高电平
    static uint32_t last_tap_time = 0;        // 上次触发拍一拍的时间戳
@@ -83,6 +88,12 @@ void adc_app_task(void *param)
 
         for (int i = 0; i < ch_num; ++i) {
             uint16_t adc_val = values[i];
+            
+            // 如果是土壤湿度传感器(CH0)，则应用滤波器
+            if (i == 0) {
+                adc_val = median_filter_update(&soil_humidity_filter, adc_val);
+            }
+
             int voltage = 0;
 
             // 获取校准句柄
@@ -100,13 +111,13 @@ void adc_app_task(void *param)
             }
 
            if (i == 2) { // 震动传感器逻辑
-                ESP_LOGI(TAG, "Vibration sensor voltage: %d mV", voltage);
+                //ESP_LOGI(TAG, "Vibration sensor voltage: %d mV", voltage);
                uint32_t now = xTaskGetTickCount() * portTICK_PERIOD_MS;
                if (last_vibration_voltage > VIBRATION_HIGH_THRESHOLD &&
                    voltage < VIBRATION_LOW_THRESHOLD &&
                    (now - last_tap_time > VIBRATION_COOLDOWN))
                {
-                   ESP_LOGI(TAG, "Tap detected! Voltage dropped from %d to %d", last_vibration_voltage, voltage);
+                //    ESP_LOGI(TAG, "Tap detected! Voltage dropped from %d to %d", last_vibration_voltage, voltage);
                    app_controller_notify_tap();
                    last_tap_time = now;
                }
@@ -115,7 +126,17 @@ void adc_app_task(void *param)
                 // 计算百分比
                float percent = 0.0f;
                if (i == 0) {
-                   percent = (voltage * 100.0f / 3300.0f);
+                    // 新的映射逻辑：将 [20, 80] 的内部值映射到 [0, 100] 的显示值
+                    // 首先，计算出原始的内部百分比值
+                    float raw_percent = 100.0f - (voltage * 100.0f / 3300.0f);
+
+                    // 定义传感器的实际测量范围
+                    const float SENSOR_DRY_VALUE = 25.0f;
+                    const float SENSOR_WET_VALUE = 85.0f;
+
+                    // 应用线性映射公式
+                    percent = (raw_percent - SENSOR_DRY_VALUE) * 100.0f / (SENSOR_WET_VALUE - SENSOR_DRY_VALUE);
+
                } else if (i == 1) {
                    percent = (voltage - 25.0f) * 100.0f / (1600.0f - 25.0f);
                }
@@ -130,13 +151,9 @@ void adc_app_task(void *param)
            }
         }
 
-
-        // 仅当湿度值变化时才通知，避免频繁更新
-        if (fabsf(percent_ch0 - last_percent[0]) > percent_threshold || fabsf(percent_ch1 - last_percent[1]) > percent_threshold) {
-           app_controller_notify_adc_data(100.0f - percent_ch0, 100.0f - percent_ch1);
-           last_percent[0] = percent_ch0;
-           last_percent[1] = percent_ch1;
-        }
+        ESP_LOGI(TAG, "Soil Value： %0.1f%%",percent_ch0);
+        // 滤波和映射后的数据已经很平滑，直接通知控制器更新
+        app_controller_notify_adc_data(percent_ch0, 100.0f - percent_ch1);
         
         vTaskDelay(pdMS_TO_TICKS(500));
     }

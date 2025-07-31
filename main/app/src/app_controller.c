@@ -13,6 +13,8 @@
 #include "app_anim.h" // 包含动画调度器头文件
 #include "esp_log.h"
 #include <math.h>
+#include "freertos/timers.h" // 引入定时器头文件
+#include "app_timer_service.h" // 引入新的定时器服务
 
 // 声明外部的guider_ui变量
 extern lv_ui guider_ui;
@@ -46,8 +48,7 @@ static struct {
 
 
 static const char *TAG = "app_controller";
-
-// Forward declaration
+// 函数前向声明
 static void sprite_state_machine_run(EventBits_t events);
 static void update_system_state(EventBits_t events);
 
@@ -71,15 +72,22 @@ void app_controller_init(void)
  */
 static void sprite_state_machine_run(EventBits_t events)
 {
-    // 首先，处理可能在任何状态下都优先触发的状态转换（如环境突变）
-    if (sensor_data.adc_percent_ch0 < 20.0f) { // 湿度过低 -> 迷路
-        if (sprite_status.current_state != SPRITE_STATE_AWAY_LOST) {
-            ESP_LOGW(TAG, "Humidity too low (%.1f%%)! Sprite is now LOST.", sensor_data.adc_percent_ch0);
-            sprite_status.current_state = SPRITE_STATE_AWAY_LOST;
-            sprite_status.last_state_change_time = xTaskGetTickCount();
-            // TODO: 启动一个硬件定时器来检查“持续两天”的条件，以便发送APP通知
+    // --- 高优先级检查 (覆盖正常的状态逻辑) ---
+    // 1. 检查湿度是否过低
+    if (sensor_data.adc_percent_ch0 < 20.0f) {
+        // 如果角色在外（正常或准备回家），则强制进入迷路状态
+        if (sprite_status.current_state == SPRITE_STATE_AWAY_NORMAL || sprite_status.current_state == SPRITE_STATE_PREPARING_TO_GO_HOME) {
+            if (sprite_status.current_state != SPRITE_STATE_AWAY_LOST) {
+                ESP_LOGW(TAG, "Humidity too low! Sprite is now LOST.");
+                sprite_status.current_state = SPRITE_STATE_AWAY_LOST;
+                sprite_status.last_state_change_time = xTaskGetTickCount();
+                // 如果“准备回家”的定时器正在运行，通过服务停止它
+                app_timer_service_stop(TIMER_ID_5_MIN_GO_HOME);
+            }
         }
-    } else if (sensor_data.adc_percent_ch0 > 80.0f) { // 湿度过高 -> 淹水
+    }
+    // 2. 检查湿度是否过高
+    else if (sensor_data.adc_percent_ch0 > 80.0f) { // 湿度过高 -> 淹水
         if (sprite_status.current_state != SPRITE_STATE_EVENT_FLOODED) {
             ESP_LOGE(TAG, "Humidity too high (%.1f%%)! FLOODED.", sensor_data.adc_percent_ch0);
             sprite_status.current_state = SPRITE_STATE_EVENT_FLOODED;
@@ -87,7 +95,8 @@ static void sprite_state_machine_run(EventBits_t events)
         }
     }
 
-    // 然后，根据当前状态处理特定的事件和逻辑
+
+    // 根据当前状态处理特定的事件和逻辑
     switch (sprite_status.current_state) {
         case SPRITE_STATE_AT_HOME_AWAKE:
             ESP_LOGI(TAG, "State: AT_HOME_AWAKE");
@@ -101,6 +110,8 @@ static void sprite_state_machine_run(EventBits_t events)
                 ESP_LOGI(TAG, "Interaction: Pat the sprite, sprite says hello!");
                 app_anim_play(APP_ANIM_GREETING); // 播放打招呼动画
             }
+            // 5分钟周期定时器的逻辑现已移除。
+            // 如果需要，它将被一个更明确的机制所取代。
             break;
 
         case SPRITE_STATE_AT_HOME_SLEEPING:
@@ -116,11 +127,7 @@ static void sprite_state_machine_run(EventBits_t events)
                 app_anim_play(APP_ANIM_WAKING_UP); // 播放被叫醒动画
                 sprite_status.current_state = SPRITE_STATE_AT_HOME_AWAKE;
             }
-            if (events & TIMER_EVENT_48H_CYCLE) {
-                 ESP_LOGI(TAG, "Timer event: Forcing sprite to go out.");
-                 app_anim_play(APP_ANIM_GO_OUT); // 播放外出动画
-                 sprite_status.current_state = SPRITE_STATE_AWAY_NORMAL;
-            }
+            // 5分钟周期定时器的逻辑现已移除。
             break;
 
         case SPRITE_STATE_AWAY_NORMAL:
@@ -132,47 +139,44 @@ static void sprite_state_machine_run(EventBits_t events)
             }
             // 外出时可能没有特定动画，或者是一个“空”的动画
             if (events & USER_INTERACTION_TAP) {
-                ESP_LOGI(TAG, "Interaction: Call back the sprite.");
-                app_anim_play(APP_ANIM_COME_HOME); // 播放回家动画
-                // TODO: 实现带回物品的逻辑, 成功则播放 APP_ANIM_ITEM_FOUND
-                sprite_status.current_state = SPRITE_STATE_AT_HOME_AWAKE;
-            }
-            if (events & TIMER_EVENT_48H_CYCLE) {
-                if ((rand() % 3) == 0) {
-                    ESP_LOGI(TAG, "Timer event: Sprite decided to come home.");
-                    app_anim_play(APP_ANIM_COME_HOME);
-                    if ((rand() % 10) < 3) {
-                        sprite_status.current_state = SPRITE_STATE_AT_HOME_SLEEPING;
-                    } else {
-                        sprite_status.current_state = SPRITE_STATE_AT_HOME_AWAKE;
-                    }
-                } else {
-                    ESP_LOGI(TAG, "Timer event: Sprite decided to stay away.");
-                }
+                ESP_LOGI(TAG, "Interaction: Pat the sprite, preparing to go home.");
+                sprite_status.current_state = SPRITE_STATE_PREPARING_TO_GO_HOME;
+                sprite_status.last_state_change_time = xTaskGetTickCount();
+                app_timer_service_start(TIMER_ID_5_MIN_GO_HOME); // 通过服务启动5分钟回家倒计时
             }
             break;
 
         case SPRITE_STATE_AWAY_LOST:
             ESP_LOGI(TAG, "State: AWAY_LOST");
-             if (current_screen != UI_SCREEN_NORMAL) { // 迷路也暂时显示主界面
-                ESP_LOGI(TAG, "Switching to NORMAL screen for LOST state.");
-                // ui_load_scr_animation(&guider_ui, &guider_ui.screen_1, guider_ui.screen_1_del, &guider_ui.screen_del, setup_scr_screen_1, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false, true);
-                current_screen = UI_SCREEN_NORMAL;
+            // 播放迷路动画
+            app_anim_play(APP_ANIM_LOST_SAD);
+            // 检查湿度是否恢复
+            if (sensor_data.adc_percent_ch0 >= 20.0f) {
+                ESP_LOGI(TAG, "Humidity is back to normal. Sprite is no longer lost.");
+                sprite_status.current_state = SPRITE_STATE_AWAY_NORMAL;
+                sprite_status.last_state_change_time = xTaskGetTickCount();
             }
-            app_anim_play(APP_ANIM_LOST_SAD); // 播放迷路/缺水动画
-            if (events & USER_INTERACTION_TAP) {
-                ESP_LOGI(TAG, "Interaction: Call back the sprite, but it's lost!");
-                app_anim_play(APP_ANIM_WATERING_GUIDE); // 播放浇水指引
-            }
-            // 增加3秒的冷却时间，防止状态快速切换
-            if (sensor_data.adc_percent_ch0 >= 20.0f && sensor_data.adc_percent_ch0 <= 80.0f) {
-                if (xTaskGetTickCount() - sprite_status.last_state_change_time > pdMS_TO_TICKS(3000)) {
-                    ESP_LOGI(TAG, "Humidity is back to normal. Sprite is no longer lost.");
-                    sprite_status.current_state = SPRITE_STATE_AWAY_NORMAL;
+            break;
+
+        case SPRITE_STATE_PREPARING_TO_GO_HOME:
+            ESP_LOGI(TAG, "State: PREPARING_TO_GO_HOME");
+            // 在此状态播放一个“准备”或“收拾”的动画
+            // app_anim_play(APP_ANIM_PREPARING);
+            if (events & EVENT_TIMER_5_MIN_EXPIRED) {
+                ESP_LOGI(TAG, "Go home timer expired. Starting to go home.");
+                app_anim_play(APP_ANIM_COME_HOME); // 播放回家动画
+
+                ESP_LOGI(TAG, "Timer event: Sprite decided to come home.");
+                app_anim_play(APP_ANIM_COME_HOME);
+                if ((rand() % 10) < 3) {
+                    sprite_status.current_state = SPRITE_STATE_AT_HOME_SLEEPING;
                 } else {
-                    ESP_LOGD(TAG, "In LOST state cooldown...");
+                    sprite_status.current_state = SPRITE_STATE_AT_HOME_AWAKE;
                 }
+
+                sprite_status.last_state_change_time = xTaskGetTickCount();
             }
+            // 在此状态下，屏蔽新的“拍一拍”交互
             break;
         
         case SPRITE_STATE_EVENT_FLOODED:
@@ -188,8 +192,18 @@ static void sprite_state_machine_run(EventBits_t events)
             if (sensor_data.adc_percent_ch0 <= 70.0f) {
                 if (xTaskGetTickCount() - sprite_status.last_state_change_time > pdMS_TO_TICKS(3000)) {
                     ESP_LOGI(TAG, "Flood is over. Sprite is back to normal.");
-                    sprite_status.current_state = SPRITE_STATE_AT_HOME_AWAKE;
+                    if ((rand() % 3) == 0) {
+                        ESP_LOGI(TAG, "Timer event: Sprite decided to come home.");
+                        app_anim_play(APP_ANIM_COME_HOME);
+                        if ((rand() % 10) < 3) {
+                            sprite_status.current_state = SPRITE_STATE_AT_HOME_SLEEPING;
                         } else {
+                            sprite_status.current_state = SPRITE_STATE_AT_HOME_AWAKE;
+                        }
+                    } else {
+                        ESP_LOGI(TAG, "Timer event: Sprite decided to stay away.");
+                    }
+                } else {
                     ESP_LOGD(TAG, "In FLOODED state cooldown...");
                 }
             }
@@ -219,7 +233,7 @@ static void update_system_state(EventBits_t events)
     if (events & USER_INTERACTION_TAP) {
         ESP_LOGI(TAG, "User tap detected!");
     }
-    if (events & TIMER_EVENT_48H_CYCLE) {
+    if (events & EVENT_TIMER_48_HOUR_EXPIRED) {
         ESP_LOGI(TAG, "48H timer event triggered!");
     }
     if (events & SENSOR_TEMP_DATA_READY)
@@ -250,7 +264,8 @@ static void app_controller_task(void *param)
         events = xEventGroupWaitBits(
             controller_event_group,
             SENSOR_ADC_DATA_READY | SENSOR_TEMP_DATA_READY | SENSOR_LIGHT_DATA_READY |
-            USER_INTERACTION_TAP | TIMER_EVENT_48H_CYCLE,
+            USER_INTERACTION_TAP |
+            EVENT_TIMER_5_MIN_EXPIRED | EVENT_TIMER_48_HOUR_EXPIRED,
             pdTRUE,    // 清除事件位
             pdFALSE,   // 等待任意一个事件
             portMAX_DELAY // 无限等待
@@ -305,9 +320,15 @@ void app_controller_notify_tap(void)
     }
 }
 
-void app_controller_notify_timer_event(void)
+/**
+ * @brief 向控制器发送一个通用事件
+ *
+ * @see app_controller.h
+ */
+void app_controller_notify_event(EventBits_t event_bit)
 {
     if (controller_event_group != NULL) {
-        xEventGroupSetBits(controller_event_group, TIMER_EVENT_48H_CYCLE);
+        // 此函数可以从任何任务或ISR安全的回调中调用
+        xEventGroupSetBits(controller_event_group, event_bit);
     }
 }
