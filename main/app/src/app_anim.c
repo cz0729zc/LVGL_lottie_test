@@ -7,6 +7,7 @@
 
 #include "app_anim.h"
 #include "ui_custom/gui_guider.h" // 需要访问UI对象
+#include "ui_custom/events_init.h"
 #include "lvgl.h"         // 需要Lottie动画的API
 #include "esp_log.h"
 
@@ -91,7 +92,8 @@ void app_anim_init(void *ui)
     }
     p_ui = (lv_ui *)ui;
     ESP_LOGI(TAG, "Animation module initialized.");
-
+    setup_ui(&guider_ui);
+    events_init(&guider_ui);
     // TODO: 在这里添加从GUI Guider生成的动画初始化代码
     // 例如: setup_animation_idle(&p_ui->screen_img_1);
     //       setup_animation_greeting(&p_ui->screen_img_1);

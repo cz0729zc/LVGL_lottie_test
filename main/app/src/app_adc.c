@@ -10,6 +10,7 @@
 
 static adc_cali_handle_t adc_cali_handle_ch0 = NULL;
 static adc_cali_handle_t adc_cali_handle_ch1 = NULL;
+static adc_cali_handle_t adc_cali_handle_ch4 = NULL; // 新增：震动传感器的校准句柄
 
 static const char *TAG = "adc_app";
 
@@ -19,8 +20,9 @@ void adc_app_init(void)
         .channels = {
             {ADC1_CHANNEL_0, 1}, // GPIO1
             {ADC1_CHANNEL_1, 2}, // GPIO2
+            {ADC1_CHANNEL_4, 5}, // 新增：GPIO5作为震动传感器输入
         },
-        .channel_num = 1,
+        .channel_num = 3, // 更新通道数量
         .sample_freq_hz = 10,
     };
     bsp_adc_init(&adc_cfg);
@@ -28,6 +30,7 @@ void adc_app_init(void)
     // 采样衰减配置（只需应用层调用一次即可）
     adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_12); // 0-3300mV
     adc1_config_channel_atten(ADC1_CHANNEL_1, ADC_ATTEN_DB_6);  // 25-1600mV
+    adc1_config_channel_atten(ADC1_CHANNEL_4, ADC_ATTEN_DB_12); // 新增：震动传感器使用12dB衰减 (0-3300mV)
 
     // 校准
     adc_cali_curve_fitting_config_t cali_config_ch0 = {
@@ -40,12 +43,18 @@ void adc_app_init(void)
         .atten = ADC_ATTEN_DB_6,
         .bitwidth = ADC_BITWIDTH_12,
     };
+    adc_cali_curve_fitting_config_t cali_config_ch4 = {
+       .unit_id = ADC_UNIT_1,
+       .atten = ADC_ATTEN_DB_12,
+       .bitwidth = ADC_BITWIDTH_12,
+   };
 
     esp_err_t cali_ret_ch0 = adc_cali_create_scheme_curve_fitting(&cali_config_ch0, &adc_cali_handle_ch0);
     esp_err_t cali_ret_ch1 = adc_cali_create_scheme_curve_fitting(&cali_config_ch1, &adc_cali_handle_ch1);
+    esp_err_t cali_ret_ch4 = adc_cali_create_scheme_curve_fitting(&cali_config_ch4, &adc_cali_handle_ch4);
 
-    if (cali_ret_ch0 == ESP_OK && cali_ret_ch1 == ESP_OK) {
-        ESP_LOGI(TAG, "ADC 校准初始化成功");
+    if (cali_ret_ch0 == ESP_OK && cali_ret_ch1 == ESP_OK && cali_ret_ch4 == ESP_OK) {
+        ESP_LOGI(TAG, "ADC 校准初始化成功 for all channels");
     } else {
         ESP_LOGW(TAG, "ADC 校准初始化失败，使用原始值");
     }
@@ -61,6 +70,13 @@ void adc_app_task(void *param)
     const float percent_threshold = 5.0f;            // 变化阈值
     float percent_ch0 = 0.0f, percent_ch1 = 0.0f;
 
+   // 震动检测相关变量
+   static int last_vibration_voltage = 3300; // 上一次的电压值，初始化为高电平
+   static uint32_t last_tap_time = 0;        // 上次触发拍一拍的时间戳
+   const int VIBRATION_HIGH_THRESHOLD = 3000; // 高电平阈值 (mV)
+   const int VIBRATION_LOW_THRESHOLD = 1800;  // 低电平阈值 (mV)
+   const uint32_t VIBRATION_COOLDOWN = 500;   // 冷却时间 (ms)
+
     while (1)
     {
         bsp_adc_get_latest(values, &ch_num);
@@ -73,37 +89,55 @@ void adc_app_task(void *param)
             adc_cali_handle_t current_cali_handle = NULL;
             if (i == 0) current_cali_handle = adc_cali_handle_ch0;
             else if (i == 1) current_cali_handle = adc_cali_handle_ch1;
+            else if (i == 2) current_cali_handle = adc_cali_handle_ch4; // 震动传感器通道
 
             if (current_cali_handle) {
                 adc_cali_raw_to_voltage(current_cali_handle, adc_val, &voltage);
             } else {
-                voltage = (i == 0) ? (adc_val * 3300 / 4095) : (adc_val * 1750 / 4095);
+                // Fallback if calibration fails
+                if (i == 0 || i == 2) voltage = adc_val * 3300 / 4095;
+                else voltage = adc_val * 1750 / 4095;
             }
 
-            // 计算百分比
-            float percent = 0.0f;
-            if (i == 0) {
-                percent = (voltage * 100.0f / 3300.0f);
-            } else if (i == 1) {
-                percent = (voltage - 25.0f) * 100.0f / (1600.0f - 25.0f);
-            }
-
-            // 限制范围
-            if (percent < 0) percent = 0;
-            if (percent > 100) percent = 100;
-
-            // // 若与上次差异超过5%，则打印
-            // if (fabsf(percent - last_percent[i]) > percent_threshold) {
-            //     ESP_LOGI(TAG, "Percent[%d]=%.1f%%", i, 100.0f - percent);
-            //     last_percent[i] = percent;  // 更新历史值
-            // }
-
-            // 更新通知数据（仅支持前两个通道）
-            if (i == 0) percent_ch0 = percent;
-            else if (i == 1) percent_ch1 = percent;
+           if (i == 2) { // 震动传感器逻辑
+                ESP_LOGI(TAG, "Vibration sensor voltage: %d mV", voltage);
+               uint32_t now = xTaskGetTickCount() * portTICK_PERIOD_MS;
+               if (last_vibration_voltage > VIBRATION_HIGH_THRESHOLD &&
+                   voltage < VIBRATION_LOW_THRESHOLD &&
+                   (now - last_tap_time > VIBRATION_COOLDOWN))
+               {
+                   ESP_LOGI(TAG, "Tap detected! Voltage dropped from %d to %d", last_vibration_voltage, voltage);
+                   app_controller_notify_tap();
+                   last_tap_time = now;
+               }
+               last_vibration_voltage = voltage;
+           } else { // 原有的湿度传感器逻辑
+                // 计算百分比
+               float percent = 0.0f;
+               if (i == 0) {
+                   percent = (voltage * 100.0f / 3300.0f);
+               } else if (i == 1) {
+                   percent = (voltage - 25.0f) * 100.0f / (1600.0f - 25.0f);
+               }
+   
+               // 限制范围
+               if (percent < 0) percent = 0;
+               if (percent > 100) percent = 100;
+   
+               // 更新通知数据
+               if (i == 0) percent_ch0 = percent;
+               else if (i == 1) percent_ch1 = percent;
+           }
         }
 
-        app_controller_notify_adc_data(100.0f - percent_ch0, 100.0f - percent_ch1);
+
+        // 仅当湿度值变化时才通知，避免频繁更新
+        if (fabsf(percent_ch0 - last_percent[0]) > percent_threshold || fabsf(percent_ch1 - last_percent[1]) > percent_threshold) {
+           app_controller_notify_adc_data(100.0f - percent_ch0, 100.0f - percent_ch1);
+           last_percent[0] = percent_ch0;
+           last_percent[1] = percent_ch1;
+        }
+        
         vTaskDelay(pdMS_TO_TICKS(500));
     }
 }

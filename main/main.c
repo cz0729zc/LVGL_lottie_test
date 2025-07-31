@@ -110,7 +110,5 @@ static void audio_play_task(void *args)
      app_controller_start_task(6, 4096);  // 启动控制器任务
     //app_wifi_wait_connected();
     /*****GUI界面初始化和事件初始化***/
-    setup_ui(&guider_ui);
-    events_init(&guider_ui);
     app_anim_init(&guider_ui); // 初始化动画模块
 }

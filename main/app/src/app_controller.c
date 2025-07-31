@@ -23,7 +23,7 @@ static EventGroupHandle_t controller_event_group = NULL;
 /** @brief 存储从各个传感器模块收集的最新数据 */
 static struct {
     float adc_percent_ch0;      /**< ADC通道0的百分比值（土壤湿度） */
-    float adc_percent_ch1;      /**< ADC通道1的百分比值 */
+    float adc_percent_ch1;      /**< ADC通道1的百分比值 （光照强度）*/
     float temperature;          /**< 温度值 */
     float uv_index;             /**< 紫外线指数 */
 } sensor_data = {0};
@@ -79,7 +79,7 @@ static void sprite_state_machine_run(EventBits_t events)
             sprite_status.last_state_change_time = xTaskGetTickCount();
             // TODO: 启动一个硬件定时器来检查“持续两天”的条件，以便发送APP通知
         }
-    } else if (sensor_data.adc_percent_ch0 > 50.0f) { // 湿度过高 -> 淹水
+    } else if (sensor_data.adc_percent_ch0 > 80.0f) { // 湿度过高 -> 淹水
         if (sprite_status.current_state != SPRITE_STATE_EVENT_FLOODED) {
             ESP_LOGE(TAG, "Humidity too high (%.1f%%)! FLOODED.", sensor_data.adc_percent_ch0);
             sprite_status.current_state = SPRITE_STATE_EVENT_FLOODED;
@@ -185,7 +185,7 @@ static void sprite_state_machine_run(EventBits_t events)
             app_anim_play(APP_ANIM_FLOODED_PANIC); // 播放淹水动画
             
             // 增加3秒的冷却时间，防止状态快速切换导致UI卡死
-            if (sensor_data.adc_percent_ch0 <= 80.0f) {
+            if (sensor_data.adc_percent_ch0 <= 70.0f) {
                 if (xTaskGetTickCount() - sprite_status.last_state_change_time > pdMS_TO_TICKS(3000)) {
                     ESP_LOGI(TAG, "Flood is over. Sprite is back to normal.");
                     sprite_status.current_state = SPRITE_STATE_AT_HOME_AWAKE;
