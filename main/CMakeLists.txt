@@ -13,6 +13,7 @@ idf_component_register(
         "./app/src/app_anim.c"
         "./app/src/app_filter.c"
         "./app/src/app_timer_service.c"
+        "./app/src/audio_player.c"
     INCLUDE_DIRS
         "."
         "./bsp/include"
