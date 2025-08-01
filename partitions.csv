@@ -1,0 +1,8 @@
+# ESP-IDF Partition Table
+# Name,   Type, SubType, Offset,  Size,   
+nvs,      data, nvs,     ,        24K,    
+otadata,  data, ota,     ,        8K,     
+phy_init, data, phy,     ,        4K,     
+app0,     app,  ota_0,   ,        4M,     
+app1,     app,  ota_1,   ,        4M,       
+storage,  data, fat,     ,        7900K,   

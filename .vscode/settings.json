@@ -30,5 +30,11 @@
     "--background-index",
     "--query-driver=D:\\Development_Tool\\ESP32\\.espressif\\tools\\xtensa-esp-elf\\esp-13.2.0_20240530\\xtensa-esp-elf\\bin\\xtensa-esp32s3-elf-gcc.exe",
     "--compile-commands-dir=d:\\Development_Tool\\ESP32\\Project_V532\\test_lvgl3\\build"
-  ]
+  ],
+  "idf.openOcdConfigs": [
+    "board/esp32s3-builtin.cfg"
+  ],
+  "idf.customExtraVars": {
+    "IDF_TARGET": "esp32s3"
+  }
 }
