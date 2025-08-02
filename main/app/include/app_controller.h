@@ -26,6 +26,20 @@ typedef enum {
     SPRITE_STATE_EVENT_FLOODED,         /**< 因环境恶劣（如过湿）而触发淹水事件 */
 } sprite_state_t;
 
+/**
+ * @brief 定义所有UI屏幕的标识符
+ *
+ * 用于app_controller通知UI层应该切换到哪个屏幕。
+ * 命名应与gui_guider.h中的屏幕变量名保持一致。
+ */
+typedef enum {
+    UI_SCREEN_ID_UNKNOWN = -1,
+    UI_SCREEN_ID_MAIN,      // 对应 guider_ui.screen, 主屏幕或启动画面
+    UI_SCREEN_ID_SCENE_1,   // 对应 guider_ui.screen_1
+    UI_SCREEN_ID_SCENE_2,   // 对应 guider_ui.screen_2
+    // 如果有更多屏幕，在此处添加
+} ui_screen_id_t;
+
 
 /**
  * @brief 定义应用控制器使用的事件标志
@@ -40,13 +54,14 @@ typedef enum {
 // --- 定时器事件 (BIT5-BIT7) ---
 #define EVENT_TIMER_5_MIN_EXPIRED    BIT5   /**< 5分钟回家倒计时结束事件 */
 #define EVENT_TIMER_48_HOUR_EXPIRED  BIT6   /**< 48小时提醒周期到达事件 */
+#define EVENT_TIMER_10_MIN_AWAY_EXPIRED BIT7  /**< 10分钟离家定时器到期事件 */
 // --- 内部事件 (BIT8+) ---
 
 
 /**
  * @brief 初始化应用控制器
  *
- * 创建事件组和其他必要的资源。
+ * 创建事件组，初始化UI，并准备控制器任务所需资源。
  */
 void app_controller_init(void);
 
@@ -59,6 +74,13 @@ void app_controller_init(void);
 void app_controller_start_task(uint32_t priority, uint32_t stack_size);
 
 // ------------------ 供其他模块调用的通知函数 ------------------
+
+// /**
+//  * @brief 请求UI切换到指定的屏幕
+//  *
+//  * @param screen_id 要加载的屏幕ID (ui_screen_id_t)
+//  */
+// void app_controller_set_ui_screen(ui_screen_id_t screen_id);
 
 /**
  * @brief 通知控制器ADC数据已更新

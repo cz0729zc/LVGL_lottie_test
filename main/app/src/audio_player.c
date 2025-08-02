@@ -43,10 +43,57 @@ esp_err_t audio_player_play(const int16_t *data, size_t len)
 }
 
 /**
+ * @brief 停止音频播放
+ */
+esp_err_t audio_player_stop(void)
+{
+    ESP_LOGI(TAG, "Stopping audio player");
+    return bsp_iis_max98357a_stop();
+}
+
+/**
  * @brief 反初始化音频播放服务
  */
 esp_err_t audio_player_deinit(void)
 {
     ESP_LOGI(TAG, "Deinitializing audio player");
     return bsp_iis_max98357a_deinit();
+}
+/**
+ * @brief 播放指定时长的音频
+ */
+esp_err_t audio_player_play_for(const int16_t *audio_data, size_t audio_data_len, uint32_t sample_rate, int duration_ms)
+{
+    if (audio_data == NULL || audio_data_len == 0 || sample_rate == 0 || duration_ms <= 0) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    // 计算单段音频数据的播放时长 (毫秒)
+    // 由于数据是 int16_t (每个采样点2字节), 采样点数量为 audio_data_len / 2
+    float single_play_duration_ms = ((float)audio_data_len / 2.0f / (float)sample_rate) * 1000.0f;
+
+    if (single_play_duration_ms == 0) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    // 计算需要循环播放的次数
+    int loop_count = (int)((float)duration_ms / single_play_duration_ms);
+    if (loop_count == 0) {
+        loop_count = 1; // 至少播放一次
+    }
+
+    ESP_LOGI(TAG, "开始播放音频，持续时间: %d ms，循环次数: %d", duration_ms, loop_count);
+
+    // 循环播放音频数据
+    for (int i = 0; i < loop_count; i++) {
+        esp_err_t ret = audio_player_play(audio_data, audio_data_len);
+        if (ret != ESP_OK) {
+            // 如果写入失败, 立即停止并返回错误
+            audio_player_stop();
+            return ret;
+        }
+    }
+
+    // 循环结束后停止播放
+    return audio_player_stop();
 }

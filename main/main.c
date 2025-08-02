@@ -19,7 +19,8 @@
  #include "app_adc.h"
  #include "app_wifi.h"
 
-#include "bsp_iis_MAX98357A.h"
+#include "audio_player.h"
+#include "audio_example.h"
 #include "freertos/task.h"
 #include <math.h>
  
@@ -27,15 +28,11 @@
  #include "esp_lvgl_port.h"
  //#include "lv_rlottie.h"
 
- #include "ui_custom/gui_guider.h"
- #include "ui_custom/custom.h"
- #include "ui_custom/events_init.h"
- 
+ #include "ui_custom/gui_guider.h" // Include the UI header to get the extern declaration
  #include "app_controller.h"
  #include "app_anim.h"
  #include "app_timer_service.h"
  
- lv_ui guider_ui;
 
   void app_main(void)
  {
@@ -50,7 +47,8 @@
     // /* LTR390UV 检测与初始化*/
     //  ESP_ERROR_CHECK(bsp_ltr390uv_init());
     /* I2S audio initialization */
-    //ESP_ERROR_CHECK(bsp_iis_max98357a_init(SAMPLE_RATE));
+    ESP_ERROR_CHECK(audio_player_init(44100));
+    
    /*****BSP应用层代码初始化*********/
     // adc_app_init();
 
@@ -66,13 +64,19 @@
     // app_wifi_init_ap();
 
     /*****创建任务*********/
-   //xTaskCreate(audio_play_task, "audio_play_task", 4096, NULL, 5, NULL);
+    // 播放1kHz正弦波，持续1秒 (1000毫秒)
+    ESP_ERROR_CHECK(audio_player_play_for(sine_wave_1khz_16bit_16000_mono, sine_wave_1khz_16bit_16000_mono_len, 16000, 1000));
+
+    // // Keep the main task running
+    // while(1) {
+    //     vTaskDelay(pdMS_TO_TICKS(1000));
+    // }
 
     //bsp_ds18b20_start_read_task(3, 4096);
     //bsp_ltr390uv_start_read_task(4, 4096);
-    //  adc_app_task_start_read_task(5, 4096);
-    //  app_controller_start_task(6, 4096);  // 启动控制器任务
+//    adc_app_task_start_read_task(5, 4096);
+//     app_controller_start_task(6, 4096);  // 启动控制器任务
     //app_wifi_wait_connected();
     /*****GUI界面初始化和事件初始化***/
-    // app_anim_init(&guider_ui); // 初始化动画模块
+    // app_anim_init has been moved to app_controller_task
 }

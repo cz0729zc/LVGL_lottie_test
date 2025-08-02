@@ -47,6 +47,35 @@ esp_err_t audio_player_init(uint32_t sample_rate);
 esp_err_t audio_player_play(const int16_t *data, size_t len);
 
 /**
+ * @brief 停止音频播放
+ * @details
+ *      停止I2S通道，这将立即停止声音输出。
+ *
+ * @return
+ *      - ESP_OK: 成功
+ *      - 其他: 失败
+ */
+esp_err_t audio_player_stop(void);
+
+/**
+ * @brief 播放指定时长的音频
+ *
+ * @details
+ *      本函数会循环播放给定的音频数据，直到达到指定的播放时长，
+ *      然后自动停止播放。
+ *
+ * @param audio_data 指向16位PCM音频数据的指针
+ * @param audio_data_len 音频数据的长度 (以字节为单位)
+ * @param sample_rate 音频数据的采样率 (例如: 16000, 44100)
+ * @param duration_ms 希望播放的总时长 (以毫秒为单位)
+ *
+ * @return
+ *      - ESP_OK: 成功
+ *      - ESP_ERR_INVALID_ARG: 参数无效
+ */
+esp_err_t audio_player_play_for(const int16_t *audio_data, size_t audio_data_len, uint32_t sample_rate, int duration_ms);
+
+/**
  * @brief 反初始化音频播放服务
  * @details
  *      - 释放I2S资源

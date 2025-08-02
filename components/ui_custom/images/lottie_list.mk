@@ -1,1 +1,1 @@
-GEN_CSRCS += lottie_Cat.c
+GEN_CSRCS += 

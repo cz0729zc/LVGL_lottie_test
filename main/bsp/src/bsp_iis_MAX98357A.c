@@ -62,3 +62,10 @@ esp_err_t bsp_iis_max98357a_deinit(void)
     }
     return ESP_OK;
 }
+esp_err_t bsp_iis_max98357a_stop(void)
+{
+    if (tx_chan) {
+        return i2s_channel_disable(tx_chan);
+    }
+    return ESP_OK;
+}

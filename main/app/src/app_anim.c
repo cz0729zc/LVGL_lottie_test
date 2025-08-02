@@ -44,17 +44,17 @@ static void anim_player_flooded_panic(bool play);
  */
 static void anim_player_idle(bool play)
 {
-    if (p_ui && p_ui->screen_1_rlottie_1) {
-        if (play) {
-            // 确保动画在正确的屏幕上
-            if (lv_scr_act() == p_ui->screen_1) {
-                lv_obj_clear_flag(p_ui->screen_1_rlottie_1, LV_OBJ_FLAG_HIDDEN);
-                lv_rlottie_set_play_mode(p_ui->screen_1_rlottie_1, LV_RLOTTIE_CTRL_LOOP);
-            }
-        } else {
-            lv_obj_add_flag(p_ui->screen_1_rlottie_1, LV_OBJ_FLAG_HIDDEN);
-        }
-    }
+    // if (p_ui && p_ui->screen_1_rlottie_1) {
+    //     if (play) {
+    //         // 确保动画在正确的屏幕上
+    //         if (lv_scr_act() == p_ui->screen_1) {
+    //             lv_obj_clear_flag(p_ui->screen_1_rlottie_1, LV_OBJ_FLAG_HIDDEN);
+    //             lv_rlottie_set_play_mode(p_ui->screen_1_rlottie_1, LV_RLOTTIE_CTRL_LOOP);
+    //         }
+    //     } else {
+    //         lv_obj_add_flag(p_ui->screen_1_rlottie_1, LV_OBJ_FLAG_HIDDEN);
+    //     }
+    // }
 }
 
 /**
@@ -63,17 +63,17 @@ static void anim_player_idle(bool play)
  */
 static void anim_player_flooded_panic(bool play)
 {
-    if (p_ui && p_ui->screen_rlottie_1) {
-        if (play) {
-            // 确保动画在正确的屏幕上
-            if (lv_scr_act() == p_ui->screen) {
-                lv_obj_clear_flag(p_ui->screen_rlottie_1, LV_OBJ_FLAG_HIDDEN);
-                lv_rlottie_set_play_mode(p_ui->screen_rlottie_1, LV_RLOTTIE_CTRL_LOOP);
-            }
-        } else {
-            lv_obj_add_flag(p_ui->screen_rlottie_1, LV_OBJ_FLAG_HIDDEN);
-        }
-    }
+    // if (p_ui && p_ui->screen_rlottie_1) {
+    //     if (play) {
+    //         // 确保动画在正确的屏幕上
+    //         if (lv_scr_act() == p_ui->screen) {
+    //             lv_obj_clear_flag(p_ui->screen_rlottie_1, LV_OBJ_FLAG_HIDDEN);
+    //             lv_rlottie_set_play_mode(p_ui->screen_rlottie_1, LV_RLOTTIE_CTRL_LOOP);
+    //         }
+    //     } else {
+    //         lv_obj_add_flag(p_ui->screen_rlottie_1, LV_OBJ_FLAG_HIDDEN);
+    //     }
+    // }
 }
 
 
@@ -92,8 +92,8 @@ void app_anim_init(void *ui)
     }
     p_ui = (lv_ui *)ui;
     ESP_LOGI(TAG, "Animation module initialized.");
-    setup_ui(&guider_ui);
-    events_init(&guider_ui);
+    //setup_ui(&guider_ui);
+    //events_init(&guider_ui);
     // TODO: 在这里添加从GUI Guider生成的动画初始化代码
     // 例如: setup_animation_idle(&p_ui->screen_img_1);
     //       setup_animation_greeting(&p_ui->screen_img_1);
@@ -130,10 +130,12 @@ void app_anim_play(app_anim_id_t anim_id)
     // 分发到具体的动画播放器
     switch (anim_id) {
         case APP_ANIM_IDLE:
-            anim_player_idle(true);
+            ESP_LOGI(TAG, "Placeholder for: Start Normal Animation");
+            //anim_player_idle(true);
             break;
         case APP_ANIM_FLOODED_PANIC:
-            anim_player_flooded_panic(true);
+            ESP_LOGI(TAG, "Placeholder for: Start FLOOD Animation");
+            //anim_player_flooded_panic(true);
             break;
         
         // --- 以下为占位符，保持扩展性 ---

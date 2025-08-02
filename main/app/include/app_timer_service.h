@@ -21,6 +21,7 @@
 typedef enum {
     TIMER_ID_5_MIN_GO_HOME,   /**< 用于触发“回家”事件的5分钟一次性定时器。 */
     TIMER_ID_48_HOUR_REMINDER,  /**< 用于通知的48小时周期性定时器（未来使用）。 */
+    TIMER_ID_10_MIN_AWAY,       /**< 用于在家状态10分钟后触发去外出的定时器。 */
     // 在此按需添加更多定时器ID
     TIMER_ID_MAX,               /**< 已定义定时器的总数。 */
 } app_timer_id_t;

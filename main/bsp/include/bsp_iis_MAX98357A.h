@@ -10,7 +10,7 @@ extern "C" {
 
 /* I2S GPIO Configuration */
 #define BSP_I2S_BCLK_PIN    (GPIO_NUM_39)
-#define BSP_I2S_WS_PIN      (GPIO_NUM_37)
+#define BSP_I2S_WS_PIN      (GPIO_NUM_38)
 #define BSP_I2S_DOUT_PIN    (GPIO_NUM_11)
 
 /**
@@ -45,6 +45,15 @@ esp_err_t bsp_iis_max98357a_write(const void *src, size_t data_size, size_t *byt
  *      - ESP_FAIL on error
  */
 esp_err_t bsp_iis_max98357a_deinit(void);
+/**
+ * @brief Stop I2S transmission
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_FAIL on error
+ */
+esp_err_t bsp_iis_max98357a_stop(void);
+
 
 
 #ifdef __cplusplus

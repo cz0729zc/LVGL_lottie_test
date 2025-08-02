@@ -12,6 +12,8 @@
 #include "gui_guider.h"
 #include "widgets_init.h"
 
+lv_ui guider_ui;
+
 void ui_init_style(lv_style_t * style)
 {
     if (style->prop_cnt > 1)
@@ -74,6 +76,7 @@ void init_scr_del_flag(lv_ui *ui)
 
     ui->screen_del = true;
     ui->screen_1_del = true;
+    ui->screen_2_del = true;
 }
 
 void setup_bottom_layer(void)
@@ -86,8 +89,8 @@ void setup_ui(lv_ui *ui)
     setup_bottom_layer();
     init_scr_del_flag(ui);
     init_keyboard(ui);
-    setup_scr_screen_1(ui);
-    lv_screen_load(ui->screen_1);
+    setup_scr_screen(ui);
+    lv_screen_load(ui->screen);
 }
 
 void video_play(lv_ui *ui)

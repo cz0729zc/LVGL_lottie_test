@@ -22,15 +22,12 @@ typedef struct
 	lv_obj_t *screen;
 	bool screen_del;
 	lv_obj_t *screen_img_1;
-	lv_obj_t *screen_rlottie_1;
-	lv_obj_t *screen_imgbtn_1;
-	lv_obj_t *screen_imgbtn_1_label;
 	lv_obj_t *screen_1;
 	bool screen_1_del;
 	lv_obj_t *screen_1_img_1;
-	lv_obj_t *screen_1_rlottie_1;
-	lv_obj_t *screen_1_imgbtn_1;
-	lv_obj_t *screen_1_imgbtn_1_label;
+	lv_obj_t *screen_2;
+	bool screen_2_del;
+	lv_obj_t *screen_2_img_1;
 }lv_ui;
 
 typedef void (*ui_setup_scr_t)(lv_ui * ui);
@@ -60,20 +57,11 @@ extern lv_ui guider_ui;
 
 void setup_scr_screen(lv_ui *ui);
 void setup_scr_screen_1(lv_ui *ui);
-LV_IMAGE_DECLARE(_background1_RGB565_128x160);
-#define LV_LOT_DECLARE(array_name) extern const uint8_t array_name[];
-LV_LOT_DECLARE(lottie_Cat);
-LV_IMAGE_DECLARE(_Walk21_RGB565A8_24x25);
-LV_IMAGE_DECLARE(_Walk22_RGB565A8_24x25);
-LV_IMAGE_DECLARE(_Walk26_RGB565A8_24x25);
-LV_IMAGE_DECLARE(_background2_RGB565A8_128x160);
-#define LV_LOT_DECLARE(array_name) extern const uint8_t array_name[];
-LV_LOT_DECLARE(lottie_Cat);
-LV_IMAGE_DECLARE(_Chest_Open1_RGB565A8_22x20);
-LV_IMAGE_DECLARE(_Chest_Open2_RGB565A8_22x20);
-LV_IMAGE_DECLARE(_Chest_Open3_RGB565A8_22x20);
+void setup_scr_screen_2(lv_ui *ui);
+LV_IMAGE_DECLARE(_scene2_RGB565A8_128x160);
+LV_IMAGE_DECLARE(_background3_RGB565A8_128x160);
+LV_IMAGE_DECLARE(_scene1_RGB565A8_128x160);
 
-LV_FONT_DECLARE(lv_font_montserratMedium_12)
 
 
 #ifdef __cplusplus
