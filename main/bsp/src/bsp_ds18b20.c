@@ -9,7 +9,7 @@
 
 // #define BSP_DS18B20_ONEWIRE_GPIO    18
 #define BSP_DS18B20_ONEWIRE_GPIO    38
-#define BSP_DS18B20_MAX_DEVICES     2
+#define BSP_DS18B20_MAX_DEVICES     1
 
 static int s_ds18b20_device_num = 0;
 static float s_temperature = 0.0;

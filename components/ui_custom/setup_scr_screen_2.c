@@ -26,18 +26,13 @@ void setup_scr_screen_2(lv_ui *ui)
     //Write style for screen_2, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
     lv_obj_set_style_bg_opa(ui->screen_2, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
 
-    //Write codes screen_2_img_1
-    ui->screen_2_img_1 = lv_image_create(ui->screen_2);
-    lv_obj_set_pos(ui->screen_2_img_1, 0, 0);
-    lv_obj_set_size(ui->screen_2_img_1, 128, 160);
-    lv_obj_add_flag(ui->screen_2_img_1, LV_OBJ_FLAG_CLICKABLE);
-    lv_image_set_src(ui->screen_2_img_1, &_scene1_RGB565A8_128x160);
-    lv_image_set_pivot(ui->screen_2_img_1, 50,50);
-    lv_image_set_rotation(ui->screen_2_img_1, 0);
+    //Write codes screen_2_rlottie_1
+    ui->screen_2_rlottie_1 = lv_rlottie_create_from_raw(ui->screen_2, 98, 107, (const void *)lottie_plant_icon);
+    lv_obj_set_pos(ui->screen_2_rlottie_1, 12, 30);
+    lv_obj_set_size(ui->screen_2_rlottie_1, 98, 107);
 
-    //Write style for screen_2_img_1, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
-    lv_obj_set_style_image_recolor_opa(ui->screen_2_img_1, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_image_opa(ui->screen_2_img_1, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    //Write style for screen_2_rlottie_1, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_bg_opa(ui->screen_2_rlottie_1, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
 
     //The custom code of screen_2.
 

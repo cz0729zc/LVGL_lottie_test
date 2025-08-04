@@ -22,12 +22,14 @@ typedef struct
 	lv_obj_t *screen;
 	bool screen_del;
 	lv_obj_t *screen_img_1;
+	lv_obj_t *screen_animimg_1;
+	lv_obj_t *screen_animimg_2;
 	lv_obj_t *screen_1;
 	bool screen_1_del;
-	lv_obj_t *screen_1_img_1;
+	lv_obj_t *screen_1_rlottie_1;
 	lv_obj_t *screen_2;
 	bool screen_2_del;
-	lv_obj_t *screen_2_img_1;
+	lv_obj_t *screen_2_rlottie_1;
 }lv_ui;
 
 typedef void (*ui_setup_scr_t)(lv_ui * ui);
@@ -58,9 +60,19 @@ extern lv_ui guider_ui;
 void setup_scr_screen(lv_ui *ui);
 void setup_scr_screen_1(lv_ui *ui);
 void setup_scr_screen_2(lv_ui *ui);
-LV_IMAGE_DECLARE(_scene2_RGB565A8_128x160);
-LV_IMAGE_DECLARE(_background3_RGB565A8_128x160);
-LV_IMAGE_DECLARE(_scene1_RGB565A8_128x160);
+LV_IMAGE_DECLARE(_background_RGB565A8_128x160);
+LV_IMAGE_DECLARE(screen_animimg_1idle1);
+LV_IMAGE_DECLARE(screen_animimg_1idle2);
+LV_IMAGE_DECLARE(screen_animimg_1idle3);
+LV_IMAGE_DECLARE(screen_animimg_1idle4);
+LV_IMAGE_DECLARE(screen_animimg_2deceration1);
+LV_IMAGE_DECLARE(screen_animimg_2deceration2);
+LV_IMAGE_DECLARE(screen_animimg_2deceration3);
+LV_IMAGE_DECLARE(screen_animimg_2deceration4);
+#define LV_LOT_DECLARE(array_name) extern const uint8_t array_name[];
+LV_LOT_DECLARE(lottie_loading);
+#define LV_LOT_DECLARE(array_name) extern const uint8_t array_name[];
+LV_LOT_DECLARE(lottie_plant_icon);
 
 
 

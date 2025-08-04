@@ -1,1 +1,1 @@
-GEN_CSRCS += _scene2_RGB565A8_128x160.c _background3_RGB565A8_128x160.c _scene1_RGB565A8_128x160.c
+GEN_CSRCS += _background_RGB565A8_128x160.c screen_animimg_1idle1.c screen_animimg_1idle2.c screen_animimg_1idle3.c screen_animimg_1idle4.c screen_animimg_2deceration1.c screen_animimg_2deceration2.c screen_animimg_2deceration3.c screen_animimg_2deceration4.c

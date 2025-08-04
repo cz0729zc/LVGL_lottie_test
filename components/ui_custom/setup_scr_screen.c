@@ -21,7 +21,7 @@ void setup_scr_screen(lv_ui *ui)
     //Write codes screen
     ui->screen = lv_obj_create(NULL);
     lv_obj_set_size(ui->screen, 128, 160);
-    lv_obj_set_scrollbar_mode(ui->screen, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_set_scrollbar_mode(ui->screen, LV_SCROLLBAR_MODE_ON);
 
     //Write style for screen, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
     lv_obj_set_style_bg_opa(ui->screen, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
@@ -31,7 +31,7 @@ void setup_scr_screen(lv_ui *ui)
     lv_obj_set_pos(ui->screen_img_1, 0, 0);
     lv_obj_set_size(ui->screen_img_1, 128, 160);
     lv_obj_add_flag(ui->screen_img_1, LV_OBJ_FLAG_CLICKABLE);
-    lv_image_set_src(ui->screen_img_1, &_scene2_RGB565A8_128x160);
+    lv_image_set_src(ui->screen_img_1, &_background_RGB565A8_128x160);
     lv_image_set_pivot(ui->screen_img_1, 50,50);
     lv_image_set_rotation(ui->screen_img_1, 0);
 
@@ -39,10 +39,30 @@ void setup_scr_screen(lv_ui *ui)
     lv_obj_set_style_image_recolor_opa(ui->screen_img_1, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_image_opa(ui->screen_img_1, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
 
+    //Write codes screen_animimg_1
+    ui->screen_animimg_1 = lv_animimg_create(ui->screen);
+    lv_obj_set_pos(ui->screen_animimg_1, 38, 93);
+    lv_obj_set_size(ui->screen_animimg_1, 47, 41);
+    lv_animimg_set_src(ui->screen_animimg_1, (const void **) screen_animimg_1_imgs, 4);
+    lv_animimg_set_duration(ui->screen_animimg_1, 250*4);
+    lv_animimg_set_repeat_count(ui->screen_animimg_1, LV_ANIM_REPEAT_INFINITE);
+    lv_animimg_start(ui->screen_animimg_1);
+
+    //Write codes screen_animimg_2
+    ui->screen_animimg_2 = lv_animimg_create(ui->screen);
+    lv_obj_set_pos(ui->screen_animimg_2, 0, 0);
+    lv_obj_set_size(ui->screen_animimg_2, 128, 160);
+    lv_animimg_set_src(ui->screen_animimg_2, (const void **) screen_animimg_2_imgs, 4);
+    lv_animimg_set_duration(ui->screen_animimg_2, 250*4);
+    lv_animimg_set_repeat_count(ui->screen_animimg_2, LV_ANIM_REPEAT_INFINITE);
+    lv_animimg_start(ui->screen_animimg_2);
+
     //The custom code of screen.
 
 
     //Update current screen layout.
     lv_obj_update_layout(ui->screen);
 
+    //Init events for screen.
+    events_init_screen(ui);
 }
