@@ -12,8 +12,6 @@
 #include "gui_guider.h"
 #include "widgets_init.h"
 
-lv_ui guider_ui;
-
 void ui_init_style(lv_style_t * style)
 {
     if (style->prop_cnt > 1)
@@ -75,8 +73,6 @@ void init_scr_del_flag(lv_ui *ui)
 {
 
     ui->screen_del = true;
-    ui->screen_1_del = true;
-    ui->screen_2_del = true;
 }
 
 void setup_bottom_layer(void)

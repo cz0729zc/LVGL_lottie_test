@@ -94,15 +94,80 @@ void digital_clock_count(int * hour, int * minute, int * seconds, char * meridie
 }
 
 
-const lv_image_dsc_t * screen_animimg_1_imgs[4] = {
-    &screen_animimg_1idle1,
-    &screen_animimg_1idle2,
-    &screen_animimg_1idle3,
-    &screen_animimg_1idle4,
+const lv_image_dsc_t * screen_animimg_ground_imgs[4] = {
+    &screen_animimg_grounddeceration1,
+    &screen_animimg_grounddeceration2,
+    &screen_animimg_grounddeceration3,
+    &screen_animimg_grounddeceration4,
 };
-const lv_image_dsc_t * screen_animimg_2_imgs[4] = {
-    &screen_animimg_2deceration1,
-    &screen_animimg_2deceration2,
-    &screen_animimg_2deceration3,
-    &screen_animimg_2deceration4,
+const lv_image_dsc_t * screen_animimg_idel_sleep_imgs[5] = {
+    &screen_animimg_idel_sleepfallAsleep1,
+    &screen_animimg_idel_sleepfallAsleep2,
+    &screen_animimg_idel_sleepfallAsleep3,
+    &screen_animimg_idel_sleepfallAsleep4,
+    &screen_animimg_idel_sleepfallAsleep5,
+};
+const lv_image_dsc_t * screen_animimg_idel_awake_imgs[5] = {
+    &screen_animimg_idel_awakeawake1,
+    &screen_animimg_idel_awakeawake2,
+    &screen_animimg_idel_awakeawake3,
+    &screen_animimg_idel_awakeawake4,
+    &screen_animimg_idel_awakeawake5,
+};
+const lv_image_dsc_t * screen_animimg_idel_imgs[4] = {
+    &screen_animimg_idelidle1,
+    &screen_animimg_idelidle2,
+    &screen_animimg_idelidle3,
+    &screen_animimg_idelidle4,
+};
+const lv_image_dsc_t * screen_animimg_idel_flood_imgs[4] = {
+    &screen_animimg_idel_floodidle_uncomfort1,
+    &screen_animimg_idel_floodidle_uncomfort2,
+    &screen_animimg_idel_floodidle_uncomfort3,
+    &screen_animimg_idel_floodidle_uncomfort4,
+};
+const lv_image_dsc_t * screen_animimg_exp_hello_imgs[4] = {
+    &screen_animimg_exp_hellohi_expression1,
+    &screen_animimg_exp_hellohi_expression2,
+    &screen_animimg_exp_hellohi_expression3,
+    &screen_animimg_exp_hellohi_expression4,
+};
+const lv_image_dsc_t * screen_animimg_exp_sad_imgs[4] = {
+    &screen_animimg_exp_sadsad_expression1,
+    &screen_animimg_exp_sadsad_expression2,
+    &screen_animimg_exp_sadsad_expression3,
+    &screen_animimg_exp_sadsad_expression4,
+};
+const lv_image_dsc_t * screen_animimg_exp_happy_imgs[4] = {
+    &screen_animimg_exp_happyhappy_expression1,
+    &screen_animimg_exp_happyhappy_expression2,
+    &screen_animimg_exp_happyhappy_expression3,
+    &screen_animimg_exp_happyhappy_expression4,
+};
+const lv_image_dsc_t * screen_animimg_exp_sleep_imgs[4] = {
+    &screen_animimg_exp_sleepsleep_expression1,
+    &screen_animimg_exp_sleepsleep_expression2,
+    &screen_animimg_exp_sleepsleep_expression3,
+    &screen_animimg_exp_sleepsleep_expression4,
+};
+const lv_image_dsc_t * screen_animimg_exp_flood_imgs[4] = {
+    &screen_animimg_exp_flooduncomfort_expression1,
+    &screen_animimg_exp_flooduncomfort_expression2,
+    &screen_animimg_exp_flooduncomfort_expression3,
+    &screen_animimg_exp_flooduncomfort_expression4,
+};
+const lv_image_dsc_t * screen_animimg_plant_normal_imgs[4] = {
+    &screen_animimg_plant_normalplant_icon1,
+    &screen_animimg_plant_normalplant_icon2,
+    &screen_animimg_plant_normalplant_icon3,
+    &screen_animimg_plant_normalplant_icon4,
+};
+const lv_image_dsc_t * screen_animimg_flood_imgs[7] = {
+    &screen_animimg_floodflooding1,
+    &screen_animimg_floodflooding2,
+    &screen_animimg_floodflooding3,
+    &screen_animimg_floodflooding4,
+    &screen_animimg_floodflooding5,
+    &screen_animimg_floodflooding6,
+    &screen_animimg_floodflooding7,
 };

@@ -1,1 +1,1 @@
-GEN_CSRCS += lottie_loading.c lottie_plant_icon.c
+GEN_CSRCS += 
