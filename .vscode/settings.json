@@ -22,7 +22,9 @@
     "esp_log.h": "c",
     "i2s_std.h": "c",
     "bsp_iis_max98357a.h": "c",
-    "esp_lvgl_port.h": "c"
+    "esp_lvgl_port.h": "c",
+    "lvgl.h": "c",
+    "ui_controller.h": "c"
   },
   "idf.flashType": "UART",
   "idf.portWin": "COM18",

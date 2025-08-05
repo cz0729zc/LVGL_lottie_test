@@ -10,7 +10,7 @@ idf_component_register(
         "./app/src/app_adc.c"
         "./app/src/app_wifi.c"
         "./app/src/app_controller.c"
-        "./app/src/app_anim.c"
+        "./app/src/ui_controller.c"
         "./app/src/app_filter.c"
         "./app/src/app_timer_service.c"
         "./app/src/audio_player.c"

@@ -30,7 +30,6 @@
 
  #include "ui_custom/gui_guider.h" // Include the UI header to get the extern declaration
  #include "app_controller.h"
- #include "app_anim.h"
  #include "app_timer_service.h"
  
 
@@ -41,17 +40,17 @@
     //ESP_ERROR_CHECK(bsp_ds18b20_init());        // 初始化 DS18B20 传感器
     // ESP_ERROR_CHECK(bsp_ltr390uv_init());       // 初始化 LTR390UV 传感器
     // ESP_ERROR_CHECK(audio_player_init(44100));  // 初始化音频播放器，采样率为 44100Hz
-    // adc_app_init();                             // 初始化 ADC 应用
-    // app_controller_init();                      // 初始化应用控制器
-    // app_timer_service_init();                   // 初始化定时器服务
+    adc_app_init();                             // 初始化 ADC 应用
+    app_controller_init();                      // 初始化应用控制器
+    app_timer_service_init();                   // 初始化定时器服务
 
 
     //bsp_ds18b20_start_read_task(3, 4096);    // 启动 DS18B20 读取任务，优先级为 3，栈大小为 4096
-    setup_ui(&guider_ui);
+    //setup_ui(&guider_ui);
 
     // bsp_ltr390uv_start_read_task(4, 4096);   // 启动 LTR390UV 读取任务，优先级为 4，栈大小为 4096
-    // adc_app_task_start_read_task(5, 4096);  // 启动 ADC 读取任务，优先级为 5，栈大小为 4096
-    // app_controller_start_task(6, 4096);     // 启动控制器任务，优先级为 6，栈大小为 4096
+    adc_app_task_start_read_task(5, 4096);  // 启动 ADC 读取任务，优先级为 5，栈大小为 4096
+    app_controller_start_task(6, 4096);     // 启动控制器任务，优先级为 6，栈大小为 4096
     /*****BSP驱动层代码初始化*********/
      /* LCD HW initialization */
     //  ESP_ERROR_CHECK(app_lcd_init());

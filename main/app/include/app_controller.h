@@ -27,21 +27,6 @@ typedef enum {
 } sprite_state_t;
 
 /**
- * @brief 定义所有UI屏幕的标识符
- *
- * 用于app_controller通知UI层应该切换到哪个屏幕。
- * 命名应与gui_guider.h中的屏幕变量名保持一致。
- */
-typedef enum {
-    UI_SCREEN_ID_UNKNOWN = -1,
-    UI_SCREEN_ID_MAIN,      // 对应 guider_ui.screen, 主屏幕或启动画面
-    UI_SCREEN_ID_SCENE_1,   // 对应 guider_ui.screen_1
-    UI_SCREEN_ID_SCENE_2,   // 对应 guider_ui.screen_2
-    // 如果有更多屏幕，在此处添加
-} ui_screen_id_t;
-
-
-/**
  * @brief 定义应用控制器使用的事件标志
  *
  * 用于FreeRTOS事件组，实现任务间的异步通知。
