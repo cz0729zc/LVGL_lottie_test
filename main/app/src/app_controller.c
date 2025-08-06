@@ -109,20 +109,8 @@ static void sprite_state_machine_run(EventBits_t events)
             app_timer_service_start(TIMER_ID_10_MIN_AWAY); // 启动或重置10分钟离家定时器
             if (events & USER_INTERACTION_TAP) {
                 ESP_LOGI(TAG, "Interaction: Pat the sprite, sprite says hello!");
-                // UI相关的行为已移至ui_controller
-                lv_ui *p_ui = &guider_ui;
-
-                lv_obj_add_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
-
-                lv_obj_clear_flag(p_ui->screen_animimg_exp_hello, LV_OBJ_FLAG_HIDDEN);
-                lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_hello, 1);
-                lv_animimg_start(p_ui->screen_animimg_exp_hello);
-
-                vTaskDelay(pdMS_TO_TICKS(2000));
-                lv_obj_add_flag(p_ui->screen_animimg_exp_hello, LV_OBJ_FLAG_HIDDEN);
-                lv_obj_clear_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
-                lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_happy, 2);
-                lv_animimg_start(p_ui->screen_animimg_exp_happy);
+                // 请求UI控制器播放一个非阻塞的“问候”动画序列
+                ui_controller_play_hello_animation();
             }
             break;
 

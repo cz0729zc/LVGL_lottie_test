@@ -7,16 +7,22 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
+#include "freertos/timers.h" // 引入FreeRTOS定时器
 #include "ui_custom/gui_guider.h"
 #include "ui_custom/custom.h"
 #include "ui_controller.h"
 #include "esp_log.h"
-
+#include "esp_lvgl_port.h"
 // 定义日志标签
 static const char *TAG = "ui_controller";
 
 // 指向全局UI结构体的静态指针
 static lv_ui *p_ui = NULL;
+// 用于“问候”动画序列的一次性定时器
+static TimerHandle_t hello_anim_timer = NULL;
+
+// 前向声明定时器回调函数
+static void hello_anim_timer_cb(TimerHandle_t xTimer);
 
 /**
  * @brief 初始化UI控制器
@@ -28,6 +34,21 @@ void ui_controller_init(lv_ui *ui)
         return;
     }
     p_ui = ui;
+
+    // 创建一个一次性的软件定时器，用于处理动画序列
+    // 定时器在被启动前不会做任何事
+    hello_anim_timer = xTimerCreate(
+        "hello_anim_timer",         // 定时器名称
+        pdMS_TO_TICKS(2000),        // 定时器周期 (2秒)
+        pdFALSE,                    // pdFALSE 表示这是一次性定时器
+        (void *)0,                  // 定时器ID，这里未使用
+        hello_anim_timer_cb         // 定时器到期时调用的回调函数
+    );
+
+    if (hello_anim_timer == NULL) {
+        ESP_LOGE(TAG, "Failed to create hello_anim_timer");
+    }
+
     ESP_LOGI(TAG, "UI controller initialized.");
 }
 
@@ -145,5 +166,66 @@ void ui_controller_update(sprite_state_t state, float humidity)
         lv_obj_clear_flag(p_ui->screen_state2, LV_OBJ_FLAG_HIDDEN); // 显示正常状态
     } else { // humidity > 80.0f
         lv_obj_clear_flag(p_ui->screen_state3, LV_OBJ_FLAG_HIDDEN); // 显示过湿状态
+    }
+}
+
+/**
+ * @brief "问候"动画的定时器回调函数
+ * @details
+ * 此函数在hello_anim_timer到期后（即“问候”动画播放2秒后）被调用。
+ * 它的作用是无缝衔接，开始播放“开心”动画。
+ * @param xTimer 指向触发此回调的定时器的句柄 (未使用)
+ */
+static void hello_anim_timer_cb(TimerHandle_t xTimer)
+{
+    if (p_ui == NULL) return;
+    ESP_LOGI(TAG, "Hello animation timer expired, starting happy animation.");
+    
+    // 确保在UI操作期间获取锁
+    if (lvgl_port_lock(0)) {
+        // 隐藏“问候”动画对象
+        lv_obj_add_flag(p_ui->screen_animimg_exp_hello, LV_OBJ_FLAG_HIDDEN);
+        
+        // 显示并开始播放“开心”动画
+        lv_obj_clear_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
+        lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_happy, 2);
+        lv_animimg_start(p_ui->screen_animimg_exp_happy);
+
+        // 释放锁
+        lvgl_port_unlock();
+    }
+}
+
+/**
+ * @brief 播放一个“问候”动画序列
+ */
+void ui_controller_play_hello_animation(void)
+{
+    if (p_ui == NULL || hello_anim_timer == NULL) {
+        ESP_LOGE(TAG, "Cannot play hello animation, controller not initialized or timer not created.");
+        return;
+    }
+
+    ESP_LOGI(TAG, "Starting hello animation sequence.");
+
+    // 确保在UI操作期间获取锁
+    if (lvgl_port_lock(0)) {
+        // 停止当前可能正在播放的任何表情动画，以“问候”为先
+        lv_obj_add_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(p_ui->screen_animimg_exp_sad, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(p_ui->screen_animimg_exp_sleep, LV_OBJ_FLAG_HIDDEN);
+
+        // 准备并播放“问候”动画
+        lv_obj_clear_flag(p_ui->screen_animimg_exp_hello, LV_OBJ_FLAG_HIDDEN);
+        lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_hello, 2); // 只播放一次
+        lv_animimg_start(p_ui->screen_animimg_exp_hello);
+
+        // 启动2秒的定时器，时间到后它会调用回调函数来切换到“开心”动画
+        if (xTimerStart(hello_anim_timer, 0) != pdPASS) {
+            ESP_LOGE(TAG, "Failed to start hello_anim_timer");
+        }
+        
+        // 释放锁
+        lvgl_port_unlock();
     }
 }
