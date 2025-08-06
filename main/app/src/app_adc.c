@@ -76,11 +76,13 @@ void adc_app_task(void *param)
     median_filter_init(&soil_humidity_filter);
 
    // 震动检测相关变量
-   static int last_vibration_voltage = 3300; // 上一次的电压值，初始化为高电平
-   static uint32_t last_tap_time = 0;        // 上次触发拍一拍的时间戳
-   const int VIBRATION_HIGH_THRESHOLD = 3000; // 高电平阈值 (mV)
-   const int VIBRATION_LOW_THRESHOLD = 1800;  // 低电平阈值 (mV)
-   const uint32_t VIBRATION_COOLDOWN = 500;   // 冷却时间 (ms)
+   static int last_vibration_voltage = 3300;      // 上一次的电压值，用于检测下降沿
+   static uint32_t last_notify_time = 0;          // 上次成功通知的时间戳
+   static uint32_t last_single_tap_time = 0;      // 上次检测到单击的时间，用于防抖
+   const int VIBRATION_HIGH_THRESHOLD = 3000;      // 高电平阈值 (mV)
+   const int VIBRATION_LOW_THRESHOLD = 1800;       // 低电平阈值 (mV)
+   const uint32_t SINGLE_TAP_DEBOUNCE_MS = 200;    // 单次敲击的防抖时间 (ms)
+   const uint32_t TAP_NOTIFY_COOLDOWN_MS = 5000;   // 两次有效通知之间的冷却时间 (ms)
 
     while (1)
     {
@@ -111,17 +113,23 @@ void adc_app_task(void *param)
             }
 
            if (i == 2) { // 震动传感器逻辑
-                //ESP_LOGI(TAG, "Vibration sensor voltage: %d mV", voltage);
-               uint32_t now = xTaskGetTickCount() * portTICK_PERIOD_MS;
-               if (last_vibration_voltage > VIBRATION_HIGH_THRESHOLD &&
-                   voltage < VIBRATION_LOW_THRESHOLD &&
-                   (now - last_tap_time > VIBRATION_COOLDOWN))
-               {
-                //    ESP_LOGI(TAG, "Tap detected! Voltage dropped from %d to %d", last_vibration_voltage, voltage);
-                   app_controller_notify_tap();
-                   last_tap_time = now;
-               }
-               last_vibration_voltage = voltage;
+                uint32_t now_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
+
+                // 1. 检测一次有效的、经过防抖处理的敲击
+                if (last_vibration_voltage > VIBRATION_HIGH_THRESHOLD &&
+                    voltage < VIBRATION_LOW_THRESHOLD &&
+                    (now_ms - last_single_tap_time > SINGLE_TAP_DEBOUNCE_MS))
+                {
+                    last_single_tap_time = now_ms; // 记录本次敲击事件的时间
+
+                    // 2. 检查是否满足5秒冷却时间
+                    if (now_ms - last_notify_time > TAP_NOTIFY_COOLDOWN_MS) {
+                        ESP_LOGI(TAG, "Tap detected! Notifying controller.");
+                        app_controller_notify_tap();
+                        last_notify_time = now_ms; // 更新成功通知的时间
+                    }
+                }
+                last_vibration_voltage = voltage; // 持续更新电压值
            } else { // 原有的湿度传感器逻辑
                 // 计算百分比
                float percent = 0.0f;

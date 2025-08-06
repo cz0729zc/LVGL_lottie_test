@@ -36,7 +36,7 @@ static struct {
 static struct {
     sprite_state_t current_state;       /**< 小精灵当前的逻辑状态 */
     uint32_t last_state_change_time;    /**< 上次状态变更的系统时间点 (tick) */
-} sprite_status = { .current_state = SPRITE_STATE_AWAY_NORMAL, .last_state_change_time = 0 };
+} sprite_status = { .current_state = SPRITE_STATE_NULL, .last_state_change_time = 0 };
 
 
 static const char *TAG = "app_controller";
@@ -110,6 +110,19 @@ static void sprite_state_machine_run(EventBits_t events)
             if (events & USER_INTERACTION_TAP) {
                 ESP_LOGI(TAG, "Interaction: Pat the sprite, sprite says hello!");
                 // UI相关的行为已移至ui_controller
+                lv_ui *p_ui = &guider_ui;
+
+                lv_obj_add_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
+
+                lv_obj_clear_flag(p_ui->screen_animimg_exp_hello, LV_OBJ_FLAG_HIDDEN);
+                lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_hello, 1);
+                lv_animimg_start(p_ui->screen_animimg_exp_hello);
+
+                vTaskDelay(pdMS_TO_TICKS(2000));
+                lv_obj_add_flag(p_ui->screen_animimg_exp_hello, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_clear_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
+                lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_happy, 2);
+                lv_animimg_start(p_ui->screen_animimg_exp_happy);
             }
             break;
 
@@ -183,10 +196,17 @@ static void sprite_state_machine_run(EventBits_t events)
                 }
             }
             break;
+         case SPRITE_STATE_NULL:
+            if ((rand() % 10) <= 3) {
+                sprite_status.current_state = SPRITE_STATE_AT_HOME_SLEEPING;
+            } else {
+                sprite_status.current_state = SPRITE_STATE_AT_HOME_AWAKE;
+            }         
+            break;  
 
         default:
             ESP_LOGW(TAG, "Unhandled state: %d", sprite_status.current_state);
-            sprite_status.current_state = SPRITE_STATE_AWAY_NORMAL;
+            sprite_status.current_state = SPRITE_STATE_NULL;
             app_timer_service_stop(TIMER_ID_10_MIN_AWAY); // 确保停止
             break;
     }
