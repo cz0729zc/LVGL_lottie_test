@@ -26,7 +26,7 @@ static timer_config_t timer_configs[TIMER_ID_MAX] = {
     [TIMER_ID_5_MIN_GO_HOME] = {
         .handle = NULL,
         .name = "5分钟回家定时器",
-        .period_ms = 1 * 60 * 1000, // 5 分钟
+        .period_ms = 3 * 60 * 1000, // 5 分钟
         .is_periodic = pdFALSE,     // 一次性定时器
         .event_bit = EVENT_TIMER_5_MIN_EXPIRED
     },
@@ -40,7 +40,7 @@ static timer_config_t timer_configs[TIMER_ID_MAX] = {
     [TIMER_ID_10_MIN_AWAY] = {
         .handle = NULL,
         .name = "10分钟离家定时器",
-        .period_ms = 2 * 60 * 1000, // 10 分钟
+        .period_ms = 1 * 60 * 1000, // 10 分钟
         .is_periodic = pdFALSE,      // 一次性定时器
         .event_bit = EVENT_TIMER_10_MIN_AWAY_EXPIRED
     },
@@ -59,8 +59,8 @@ static void unified_timer_callback(TimerHandle_t xTimer) {
     app_timer_id_t timer_id = (app_timer_id_t)(pvTimerGetTimerID(xTimer));
 
     if (timer_id < TIMER_ID_MAX) {
-        ESP_LOGI(TAG, "定时器 '%s' 到期, 发送事件位: %lu", timer_configs[timer_id].name, timer_configs[timer_id].event_bit);
-        // 通知应用控制器定时器事件已发生。
+        // 从回调中移除日志记录以节省堆栈空间，只发送事件。
+        // 日志记录移至主控制器任务中处理。
         app_controller_notify_event(timer_configs[timer_id].event_bit);
     } else {
         ESP_LOGE(TAG, "定时器回调收到无效ID。");
@@ -150,4 +150,49 @@ esp_err_t app_timer_service_stop(app_timer_id_t timer_id) {
 
     ESP_LOGI(TAG, "定时器 '%s' 已停止。", timer_configs[timer_id].name);
     return ESP_OK;
+}
+
+
+/**
+ * @brief 获取指定定时器的剩余时间（毫秒）。
+ * @see app_timer_service.h
+ */
+uint32_t app_timer_service_get_remaining_time_ms(app_timer_id_t timer_id)
+{
+    // 参数验证
+    if (timer_id >= TIMER_ID_MAX || timer_configs[timer_id].handle == NULL) {
+        return 0;
+    }
+
+    // 检查定时器是否激活
+    if (xTimerIsTimerActive(timer_configs[timer_id].handle) == pdFALSE) {
+        return 0;
+    }
+
+    // 获取到期时间和当前时间
+    TickType_t expiry_time = xTimerGetExpiryTime(timer_configs[timer_id].handle);
+    TickType_t current_time = xTaskGetTickCount();
+
+    // 计算剩余时间
+    if (expiry_time > current_time) {
+        return pdTICKS_TO_MS(expiry_time - current_time);
+    }
+
+    return 0;
+}
+
+
+/**
+ * @brief 检查指定的定时器当前是否处于激活状态。
+ * @see app_timer_service.h
+ */
+bool app_timer_service_is_active(app_timer_id_t timer_id)
+{
+    // 参数验证
+    if (timer_id >= TIMER_ID_MAX || timer_configs[timer_id].handle == NULL) {
+        return false;
+    }
+
+    // 调用FreeRTOS API并返回结果
+    return xTimerIsTimerActive(timer_configs[timer_id].handle) != pdFALSE;
 }

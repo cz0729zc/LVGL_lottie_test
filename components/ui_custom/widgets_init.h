@@ -39,6 +39,8 @@ extern const lv_image_dsc_t * screen_animimg_plant_normal_imgs[4];
 extern const lv_image_dsc_t * screen_animimg_flood_imgs[7];
 extern const lv_image_dsc_t * screen_animimg_exp_cominghome_imgs[4];
 extern const lv_image_dsc_t * screen_animimg_idle_cominghome_imgs[4];
+extern const lv_image_dsc_t * screen_animimg_exp_lost_imgs[4];
+extern const lv_image_dsc_t * screen_animimg_lodding_imgs[4];
 
 
 #ifdef __cplusplus

@@ -13,6 +13,7 @@
 #include "ui_controller.h"
 #include "esp_log.h"
 #include "esp_lvgl_port.h"
+#include "esp_random.h" // 添加ESP随机数生成器头文件
 // 定义日志标签
 static const char *TAG = "ui_controller";
 
@@ -25,6 +26,9 @@ static TimerHandle_t expression_timer = NULL;
 
 // 用于在定时器回调中安全访问的当前湿度缓存
 static float current_humidity = 0.0f;
+
+// 用于记录当前选择的外出背景 (0: background2, 1: background3)
+static uint8_t current_away_background = 0;
 
 // 前向声明定时器回调函数
 static void hello_anim_timer_cb(TimerHandle_t xTimer);
@@ -105,7 +109,11 @@ void ui_controller_update(sprite_state_t state, float humidity)
 
         // 1. 隐藏所有与主逻辑状态相关的动画，为新状态做准备
         lv_obj_add_flag(p_ui->screen_background, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(p_ui->screen_background2, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(p_ui->screen_background3, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(p_ui->screen_cominghome, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(p_ui->screen_animimg_ground, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(p_ui->screen_animimg_ground2, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(p_ui->screen_animimg_idel_sleep, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(p_ui->screen_animimg_idel_awake, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(p_ui->screen_animimg_idel, LV_OBJ_FLAG_HIDDEN);
@@ -117,6 +125,8 @@ void ui_controller_update(sprite_state_t state, float humidity)
         lv_obj_add_flag(p_ui->screen_animimg_exp_flood, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(p_ui->screen_animimg_plant_normal, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(p_ui->screen_animimg_flood, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(p_ui->screen_animimg_exp_cominghome, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(p_ui->screen_animimg_idle_cominghome, LV_OBJ_FLAG_HIDDEN);
 
         // 在密集的UI操作后，强制让出CPU，给系统一个喘息之机以重置看门狗
         vTaskDelay(pdMS_TO_TICKS(5));
@@ -175,8 +185,118 @@ void ui_controller_update(sprite_state_t state, float humidity)
                 break;
 
             case SPRITE_STATE_AWAY_NORMAL:
+                ESP_LOGI(TAG, "UI State: SPRITE_STATE_AWAY_NORMAL");
+                
+                // 随机选择背景 (background2 或 background3)
+                current_away_background = (esp_random() % 2); // 使用ESP32的随机数生成器
+                ESP_LOGI(TAG, "Selected background: %d (0: background2, 1: background3)", current_away_background);
+                
+                if (current_away_background == 0) {
+                    // 显示background2
+                    lv_obj_clear_flag(p_ui->screen_background2, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(p_ui->screen_background3, LV_OBJ_FLAG_HIDDEN);
+                    
+                    // 只在background2中播放animimg_ground2动画
+                    lv_obj_clear_flag(p_ui->screen_animimg_ground2, LV_OBJ_FLAG_HIDDEN);
+                    lv_animimg_set_repeat_count(p_ui->screen_animimg_ground2, LV_ANIM_PLAYTIME_INFINITE);
+                    lv_animimg_start(p_ui->screen_animimg_ground2);
+                } else {
+                    // 显示background3
+                    lv_obj_clear_flag(p_ui->screen_background3, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(p_ui->screen_background2, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(p_ui->screen_animimg_ground2, LV_OBJ_FLAG_HIDDEN);
+                }
+                
+                // 显示小精灵idle动画
+                lv_obj_clear_flag(p_ui->screen_animimg_idel, LV_OBJ_FLAG_HIDDEN);
+                lv_animimg_set_repeat_count(p_ui->screen_animimg_idel, LV_ANIM_PLAYTIME_INFINITE);
+                lv_animimg_start(p_ui->screen_animimg_idel);
+                
+                // 根据湿度显示表情
+                if (humidity < 20.0f) {
+                    // 湿度低，显示悲伤表情
+                    lv_obj_clear_flag(p_ui->screen_animimg_exp_sad, LV_OBJ_FLAG_HIDDEN);
+                    lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_sad, LV_ANIM_PLAYTIME_INFINITE);
+                    lv_animimg_start(p_ui->screen_animimg_exp_sad);
+                    
+                    // 隐藏其他表情和淹水动画
+                    lv_obj_add_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(p_ui->screen_animimg_exp_flood, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(p_ui->screen_animimg_idel_flood, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(p_ui->screen_animimg_flood, LV_OBJ_FLAG_HIDDEN);
+                } else if (humidity >= 20.0f && humidity <= 80.0f) {
+                    // 湿度正常，显示开心表情
+                    lv_obj_clear_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
+                    lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_happy, LV_ANIM_PLAYTIME_INFINITE);
+                    lv_animimg_start(p_ui->screen_animimg_exp_happy);
+                    
+                    // 隐藏其他表情和淹水动画
+                    lv_obj_add_flag(p_ui->screen_animimg_exp_sad, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(p_ui->screen_animimg_exp_flood, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(p_ui->screen_animimg_idel_flood, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(p_ui->screen_animimg_flood, LV_OBJ_FLAG_HIDDEN);
+                } else { // humidity > 80.0f
+                    // 湿度过高，显示淹水动画
+                    lv_obj_clear_flag(p_ui->screen_animimg_flood, LV_OBJ_FLAG_HIDDEN);
+                    lv_animimg_set_repeat_count(p_ui->screen_animimg_flood, LV_ANIM_PLAYTIME_INFINITE);
+                    lv_animimg_start(p_ui->screen_animimg_flood);
+                    
+                    lv_obj_clear_flag(p_ui->screen_animimg_idel_flood, LV_OBJ_FLAG_HIDDEN);
+                    lv_animimg_set_repeat_count(p_ui->screen_animimg_idel_flood, LV_ANIM_PLAYTIME_INFINITE);
+                    lv_animimg_start(p_ui->screen_animimg_idel_flood);
+                    
+                    lv_obj_clear_flag(p_ui->screen_animimg_exp_flood, LV_OBJ_FLAG_HIDDEN);
+                    lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_flood, LV_ANIM_PLAYTIME_INFINITE);
+                    lv_animimg_start(p_ui->screen_animimg_exp_flood);
+                    
+                    // 如果湿度过高，隐藏普通idle动画
+                    lv_obj_add_flag(p_ui->screen_animimg_idel, LV_OBJ_FLAG_HIDDEN);
+                    
+                    // 隐藏其他表情
+                    lv_obj_add_flag(p_ui->screen_animimg_exp_sad, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
+                }
+                break;
+
             case SPRITE_STATE_PREPARING_TO_GO_HOME:
-                ESP_LOGD(TAG, "UI State: %d (No specific UI implemented yet)", state);
+                ESP_LOGI(TAG, "UI State: SPRITE_STATE_PREPARING_TO_GO_HOME");
+                
+                // 保持之前的背景选择
+                if (current_away_background == 0) {
+                    // 保持background2可见
+                    lv_obj_clear_flag(p_ui->screen_background2, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(p_ui->screen_background3, LV_OBJ_FLAG_HIDDEN);
+                    
+                    // 保持animimg_ground2动画
+                    lv_obj_clear_flag(p_ui->screen_animimg_ground2, LV_OBJ_FLAG_HIDDEN);
+                    lv_animimg_set_repeat_count(p_ui->screen_animimg_ground2, LV_ANIM_PLAYTIME_INFINITE);
+                    lv_animimg_start(p_ui->screen_animimg_ground2);
+                } else {
+                    // 保持background3可见
+                    lv_obj_clear_flag(p_ui->screen_background3, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(p_ui->screen_background2, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(p_ui->screen_animimg_ground2, LV_OBJ_FLAG_HIDDEN);
+                }
+                
+                // 显示cominghome图层
+                lv_obj_clear_flag(p_ui->screen_cominghome, LV_OBJ_FLAG_HIDDEN);
+                
+                // 隐藏普通idle动画和flood相关动画
+                lv_obj_add_flag(p_ui->screen_animimg_idel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(p_ui->screen_animimg_idel_flood, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(p_ui->screen_animimg_flood, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(p_ui->screen_animimg_exp_flood, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(p_ui->screen_animimg_exp_sad, LV_OBJ_FLAG_HIDDEN);
+                
+                // 显示cominghome相关动画
+                lv_obj_clear_flag(p_ui->screen_animimg_idle_cominghome, LV_OBJ_FLAG_HIDDEN);
+                lv_animimg_set_repeat_count(p_ui->screen_animimg_idle_cominghome, LV_ANIM_PLAYTIME_INFINITE);
+                lv_animimg_start(p_ui->screen_animimg_idle_cominghome);
+                
+                lv_obj_clear_flag(p_ui->screen_animimg_exp_cominghome, LV_OBJ_FLAG_HIDDEN);
+                lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_cominghome, LV_ANIM_PLAYTIME_INFINITE);
+                lv_animimg_start(p_ui->screen_animimg_exp_cominghome);
                 break;
     
             default:

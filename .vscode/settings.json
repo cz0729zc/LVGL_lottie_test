@@ -24,7 +24,8 @@
     "bsp_iis_max98357a.h": "c",
     "esp_lvgl_port.h": "c",
     "lvgl.h": "c",
-    "ui_controller.h": "c"
+    "ui_controller.h": "c",
+    "numbers": "c"
   },
   "idf.flashType": "UART",
   "idf.portWin": "COM18",

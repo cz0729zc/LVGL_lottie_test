@@ -60,4 +60,21 @@ esp_err_t app_timer_service_start(app_timer_id_t timer_id);
  */
 esp_err_t app_timer_service_stop(app_timer_id_t timer_id);
 
+/**
+ * @brief 获取指定定时器的剩余时间（毫秒）。
+ *
+ * @param timer_id 要查询的定时器的ID。
+ * @return uint32_t 剩余时间（毫秒）。如果定时器未激活或ID无效，则返回0。
+ */
+uint32_t app_timer_service_get_remaining_time_ms(app_timer_id_t timer_id);
+
+/**
+ * @brief 检查指定的定时器当前是否处于激活状态。
+ *
+ * @param timer_id 要查询的定时器的ID。
+ * @return bool
+ *         - true: 定时器正在运行。
+ *         - false: 定时器未激活或ID无效。
+ */
+bool app_timer_service_is_active(app_timer_id_t timer_id);
 #endif // APP_TIMER_SERVICE_H

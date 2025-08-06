@@ -192,3 +192,15 @@ const lv_image_dsc_t * screen_animimg_idle_cominghome_imgs[4] = {
     &screen_animimg_idle_cominghomewalkLeft3,
     &screen_animimg_idle_cominghomewalkLeft4,
 };
+const lv_image_dsc_t * screen_animimg_exp_lost_imgs[4] = {
+    &screen_animimg_exp_lostlost_expression1,
+    &screen_animimg_exp_lostlost_expression2,
+    &screen_animimg_exp_lostlost_expression3,
+    &screen_animimg_exp_lostlost_expression4,
+};
+const lv_image_dsc_t * screen_animimg_lodding_imgs[4] = {
+    &screen_animimg_loddingloading1,
+    &screen_animimg_loddingloading2,
+    &screen_animimg_loddingloading3,
+    &screen_animimg_loddingloading4,
+};

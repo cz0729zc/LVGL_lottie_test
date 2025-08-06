@@ -40,25 +40,10 @@ void setup_scr_screen(lv_ui *ui)
     lv_obj_set_style_image_recolor_opa(ui->screen_background3, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_image_opa(ui->screen_background3, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
 
-    //Write codes screen_cominghome
-    ui->screen_cominghome = lv_image_create(ui->screen);
-    lv_obj_set_pos(ui->screen_cominghome, 0, 0);
-    lv_obj_set_size(ui->screen_cominghome, 128, 160);
-    lv_obj_add_flag(ui->screen_cominghome, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(ui->screen_cominghome, LV_OBJ_FLAG_CLICKABLE);
-    lv_image_set_src(ui->screen_cominghome, &_green_layer_RGB565A8_128x160);
-    lv_image_set_pivot(ui->screen_cominghome, 50,50);
-    lv_image_set_rotation(ui->screen_cominghome, 0);
-
-    //Write style for screen_cominghome, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
-    lv_obj_set_style_image_recolor_opa(ui->screen_cominghome, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_image_opa(ui->screen_cominghome, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
-
     //Write codes screen_background2
     ui->screen_background2 = lv_image_create(ui->screen);
     lv_obj_set_pos(ui->screen_background2, 0, 0);
     lv_obj_set_size(ui->screen_background2, 128, 160);
-    lv_obj_add_flag(ui->screen_background2, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(ui->screen_background2, LV_OBJ_FLAG_CLICKABLE);
     lv_image_set_src(ui->screen_background2, &_background_dessert_RGB565A8_128x160);
     lv_image_set_pivot(ui->screen_background2, 50,50);
@@ -68,12 +53,24 @@ void setup_scr_screen(lv_ui *ui)
     lv_obj_set_style_image_recolor_opa(ui->screen_background2, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_image_opa(ui->screen_background2, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
 
+    //Write codes screen_cominghome
+    ui->screen_cominghome = lv_image_create(ui->screen);
+    lv_obj_set_pos(ui->screen_cominghome, 0, 0);
+    lv_obj_set_size(ui->screen_cominghome, 128, 160);
+    lv_obj_add_flag(ui->screen_cominghome, LV_OBJ_FLAG_CLICKABLE);
+    lv_image_set_src(ui->screen_cominghome, &_green_layer_RGB565A8_128x160);
+    lv_image_set_pivot(ui->screen_cominghome, 50,50);
+    lv_image_set_rotation(ui->screen_cominghome, 0);
+
+    //Write style for screen_cominghome, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_image_recolor_opa(ui->screen_cominghome, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_image_opa(ui->screen_cominghome, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+
     //Write codes screen_animimg_ground2
     ui->screen_animimg_ground2 = lv_animimg_create(ui->screen);
     lv_obj_set_pos(ui->screen_animimg_ground2, 0, 0);
     lv_obj_set_size(ui->screen_animimg_ground2, 128, 160);
-    lv_obj_add_flag(ui->screen_animimg_ground2, LV_OBJ_FLAG_HIDDEN);
-    lv_animimg_set_src(ui->screen_animimg_ground2, (const void **) screen_animimg_ground2_imgs, 7, false);
+    lv_animimg_set_src(ui->screen_animimg_ground2, (const void **) screen_animimg_ground2_imgs, 7);
     lv_animimg_set_duration(ui->screen_animimg_ground2, 250*7);
     lv_animimg_set_repeat_count(ui->screen_animimg_ground2, LV_ANIM_REPEAT_INFINITE);
     lv_animimg_start(ui->screen_animimg_ground2);
@@ -97,7 +94,7 @@ void setup_scr_screen(lv_ui *ui)
     lv_obj_set_pos(ui->screen_animimg_ground, 0, 0);
     lv_obj_set_size(ui->screen_animimg_ground, 128, 160);
     lv_obj_add_flag(ui->screen_animimg_ground, LV_OBJ_FLAG_HIDDEN);
-    lv_animimg_set_src(ui->screen_animimg_ground, (const void **) screen_animimg_ground_imgs, 4, false);
+    lv_animimg_set_src(ui->screen_animimg_ground, (const void **) screen_animimg_ground_imgs, 4);
     lv_animimg_set_duration(ui->screen_animimg_ground, 250*4);
     lv_animimg_set_repeat_count(ui->screen_animimg_ground, LV_ANIM_REPEAT_INFINITE);
     lv_animimg_start(ui->screen_animimg_ground);
@@ -149,7 +146,7 @@ void setup_scr_screen(lv_ui *ui)
     lv_obj_set_pos(ui->screen_animimg_idel_sleep, 41, 98);
     lv_obj_set_size(ui->screen_animimg_idel_sleep, 46, 36);
     lv_obj_add_flag(ui->screen_animimg_idel_sleep, LV_OBJ_FLAG_HIDDEN);
-    lv_animimg_set_src(ui->screen_animimg_idel_sleep, (const void **) screen_animimg_idel_sleep_imgs, 5, false);
+    lv_animimg_set_src(ui->screen_animimg_idel_sleep, (const void **) screen_animimg_idel_sleep_imgs, 5);
     lv_animimg_set_duration(ui->screen_animimg_idel_sleep, 250*5);
     lv_animimg_set_repeat_count(ui->screen_animimg_idel_sleep, 1);
     lv_animimg_start(ui->screen_animimg_idel_sleep);
@@ -160,7 +157,7 @@ void setup_scr_screen(lv_ui *ui)
     lv_obj_set_size(ui->screen_animimg_idel_awake, 46, 36);
     lv_obj_add_flag(ui->screen_animimg_idel_awake, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(ui->screen_animimg_idel_awake, LV_OBJ_FLAG_HIDDEN);
-    lv_animimg_set_src(ui->screen_animimg_idel_awake, (const void **) screen_animimg_idel_awake_imgs, 5, false);
+    lv_animimg_set_src(ui->screen_animimg_idel_awake, (const void **) screen_animimg_idel_awake_imgs, 5);
     lv_animimg_set_duration(ui->screen_animimg_idel_awake, 250*5);
     lv_animimg_set_repeat_count(ui->screen_animimg_idel_awake, 1);
     lv_image_set_src(ui->screen_animimg_idel_awake, screen_animimg_idel_awake_imgs[0]);
@@ -170,7 +167,7 @@ void setup_scr_screen(lv_ui *ui)
     lv_obj_set_pos(ui->screen_animimg_idel, 41, 98);
     lv_obj_set_size(ui->screen_animimg_idel, 46, 36);
     lv_obj_add_flag(ui->screen_animimg_idel, LV_OBJ_FLAG_HIDDEN);
-    lv_animimg_set_src(ui->screen_animimg_idel, (const void **) screen_animimg_idel_imgs, 4, false);
+    lv_animimg_set_src(ui->screen_animimg_idel, (const void **) screen_animimg_idel_imgs, 4);
     lv_animimg_set_duration(ui->screen_animimg_idel, 250*4);
     lv_animimg_set_repeat_count(ui->screen_animimg_idel, LV_ANIM_REPEAT_INFINITE);
     lv_animimg_start(ui->screen_animimg_idel);
@@ -179,8 +176,7 @@ void setup_scr_screen(lv_ui *ui)
     ui->screen_animimg_idel_flood = lv_animimg_create(ui->screen);
     lv_obj_set_pos(ui->screen_animimg_idel_flood, 41, 98);
     lv_obj_set_size(ui->screen_animimg_idel_flood, 46, 36);
-    lv_obj_add_flag(ui->screen_animimg_idel_flood, LV_OBJ_FLAG_HIDDEN);
-    lv_animimg_set_src(ui->screen_animimg_idel_flood, (const void **) screen_animimg_idel_flood_imgs, 4, false);
+    lv_animimg_set_src(ui->screen_animimg_idel_flood, (const void **) screen_animimg_idel_flood_imgs, 4);
     lv_animimg_set_duration(ui->screen_animimg_idel_flood, 250*4);
     lv_animimg_set_repeat_count(ui->screen_animimg_idel_flood, 2);
     lv_animimg_start(ui->screen_animimg_idel_flood);
@@ -190,7 +186,7 @@ void setup_scr_screen(lv_ui *ui)
     lv_obj_set_pos(ui->screen_animimg_exp_hello, 68, 81);
     lv_obj_set_size(ui->screen_animimg_exp_hello, 28, 26);
     lv_obj_add_flag(ui->screen_animimg_exp_hello, LV_OBJ_FLAG_HIDDEN);
-    lv_animimg_set_src(ui->screen_animimg_exp_hello, (const void **) screen_animimg_exp_hello_imgs, 4, false);
+    lv_animimg_set_src(ui->screen_animimg_exp_hello, (const void **) screen_animimg_exp_hello_imgs, 4);
     lv_animimg_set_duration(ui->screen_animimg_exp_hello, 250*4);
     lv_animimg_set_repeat_count(ui->screen_animimg_exp_hello, 2);
     lv_animimg_start(ui->screen_animimg_exp_hello);
@@ -200,7 +196,7 @@ void setup_scr_screen(lv_ui *ui)
     lv_obj_set_pos(ui->screen_animimg_exp_sad, 68, 81);
     lv_obj_set_size(ui->screen_animimg_exp_sad, 28, 26);
     lv_obj_add_flag(ui->screen_animimg_exp_sad, LV_OBJ_FLAG_HIDDEN);
-    lv_animimg_set_src(ui->screen_animimg_exp_sad, (const void **) screen_animimg_exp_sad_imgs, 4, false);
+    lv_animimg_set_src(ui->screen_animimg_exp_sad, (const void **) screen_animimg_exp_sad_imgs, 4);
     lv_animimg_set_duration(ui->screen_animimg_exp_sad, 250*4);
     lv_animimg_set_repeat_count(ui->screen_animimg_exp_sad, 2);
     lv_animimg_start(ui->screen_animimg_exp_sad);
@@ -210,7 +206,7 @@ void setup_scr_screen(lv_ui *ui)
     lv_obj_set_pos(ui->screen_animimg_exp_happy, 68, 81);
     lv_obj_set_size(ui->screen_animimg_exp_happy, 28, 26);
     lv_obj_add_flag(ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
-    lv_animimg_set_src(ui->screen_animimg_exp_happy, (const void **) screen_animimg_exp_happy_imgs, 4, false);
+    lv_animimg_set_src(ui->screen_animimg_exp_happy, (const void **) screen_animimg_exp_happy_imgs, 4);
     lv_animimg_set_duration(ui->screen_animimg_exp_happy, 250*4);
     lv_animimg_set_repeat_count(ui->screen_animimg_exp_happy, 2);
     lv_animimg_start(ui->screen_animimg_exp_happy);
@@ -220,7 +216,7 @@ void setup_scr_screen(lv_ui *ui)
     lv_obj_set_pos(ui->screen_animimg_exp_sleep, 68, 81);
     lv_obj_set_size(ui->screen_animimg_exp_sleep, 28, 26);
     lv_obj_add_flag(ui->screen_animimg_exp_sleep, LV_OBJ_FLAG_HIDDEN);
-    lv_animimg_set_src(ui->screen_animimg_exp_sleep, (const void **) screen_animimg_exp_sleep_imgs, 4, false);
+    lv_animimg_set_src(ui->screen_animimg_exp_sleep, (const void **) screen_animimg_exp_sleep_imgs, 4);
     lv_animimg_set_duration(ui->screen_animimg_exp_sleep, 250*4);
     lv_animimg_set_repeat_count(ui->screen_animimg_exp_sleep, LV_ANIM_REPEAT_INFINITE);
     lv_animimg_start(ui->screen_animimg_exp_sleep);
@@ -229,8 +225,7 @@ void setup_scr_screen(lv_ui *ui)
     ui->screen_animimg_exp_flood = lv_animimg_create(ui->screen);
     lv_obj_set_pos(ui->screen_animimg_exp_flood, 68, 81);
     lv_obj_set_size(ui->screen_animimg_exp_flood, 28, 26);
-    lv_obj_add_flag(ui->screen_animimg_exp_flood, LV_OBJ_FLAG_HIDDEN);
-    lv_animimg_set_src(ui->screen_animimg_exp_flood, (const void **) screen_animimg_exp_flood_imgs, 4, false);
+    lv_animimg_set_src(ui->screen_animimg_exp_flood, (const void **) screen_animimg_exp_flood_imgs, 4);
     lv_animimg_set_duration(ui->screen_animimg_exp_flood, 250*4);
     lv_animimg_set_repeat_count(ui->screen_animimg_exp_flood, 2);
     lv_animimg_start(ui->screen_animimg_exp_flood);
@@ -240,7 +235,7 @@ void setup_scr_screen(lv_ui *ui)
     lv_obj_set_pos(ui->screen_animimg_plant_normal, 44, 50);
     lv_obj_set_size(ui->screen_animimg_plant_normal, 44, 44);
     lv_obj_add_flag(ui->screen_animimg_plant_normal, LV_OBJ_FLAG_HIDDEN);
-    lv_animimg_set_src(ui->screen_animimg_plant_normal, (const void **) screen_animimg_plant_normal_imgs, 4, false);
+    lv_animimg_set_src(ui->screen_animimg_plant_normal, (const void **) screen_animimg_plant_normal_imgs, 4);
     lv_animimg_set_duration(ui->screen_animimg_plant_normal, 250*4);
     lv_animimg_set_repeat_count(ui->screen_animimg_plant_normal, 2);
     lv_animimg_start(ui->screen_animimg_plant_normal);
@@ -249,8 +244,7 @@ void setup_scr_screen(lv_ui *ui)
     ui->screen_animimg_flood = lv_animimg_create(ui->screen);
     lv_obj_set_pos(ui->screen_animimg_flood, 0, 47);
     lv_obj_set_size(ui->screen_animimg_flood, 128, 113);
-    lv_obj_add_flag(ui->screen_animimg_flood, LV_OBJ_FLAG_HIDDEN);
-    lv_animimg_set_src(ui->screen_animimg_flood, (const void **) screen_animimg_flood_imgs, 7, false);
+    lv_animimg_set_src(ui->screen_animimg_flood, (const void **) screen_animimg_flood_imgs, 7);
     lv_animimg_set_duration(ui->screen_animimg_flood, 250*7);
     lv_animimg_set_repeat_count(ui->screen_animimg_flood, LV_ANIM_REPEAT_INFINITE);
     lv_animimg_start(ui->screen_animimg_flood);
@@ -259,8 +253,7 @@ void setup_scr_screen(lv_ui *ui)
     ui->screen_animimg_exp_cominghome = lv_animimg_create(ui->screen);
     lv_obj_set_pos(ui->screen_animimg_exp_cominghome, 68, 81);
     lv_obj_set_size(ui->screen_animimg_exp_cominghome, 28, 26);
-    lv_obj_add_flag(ui->screen_animimg_exp_cominghome, LV_OBJ_FLAG_HIDDEN);
-    lv_animimg_set_src(ui->screen_animimg_exp_cominghome, (const void **) screen_animimg_exp_cominghome_imgs, 4, false);
+    lv_animimg_set_src(ui->screen_animimg_exp_cominghome, (const void **) screen_animimg_exp_cominghome_imgs, 4);
     lv_animimg_set_duration(ui->screen_animimg_exp_cominghome, 250*4);
     lv_animimg_set_repeat_count(ui->screen_animimg_exp_cominghome, LV_ANIM_REPEAT_INFINITE);
     lv_animimg_start(ui->screen_animimg_exp_cominghome);
@@ -270,10 +263,29 @@ void setup_scr_screen(lv_ui *ui)
     lv_obj_set_pos(ui->screen_animimg_idle_cominghome, 41, 98);
     lv_obj_set_size(ui->screen_animimg_idle_cominghome, 46, 36);
     lv_obj_add_flag(ui->screen_animimg_idle_cominghome, LV_OBJ_FLAG_HIDDEN);
-    lv_animimg_set_src(ui->screen_animimg_idle_cominghome, (const void **) screen_animimg_idle_cominghome_imgs, 4, false);
+    lv_animimg_set_src(ui->screen_animimg_idle_cominghome, (const void **) screen_animimg_idle_cominghome_imgs, 4);
     lv_animimg_set_duration(ui->screen_animimg_idle_cominghome, 250*4);
     lv_animimg_set_repeat_count(ui->screen_animimg_idle_cominghome, LV_ANIM_REPEAT_INFINITE);
     lv_animimg_start(ui->screen_animimg_idle_cominghome);
+
+    //Write codes screen_animimg_exp_lost
+    ui->screen_animimg_exp_lost = lv_animimg_create(ui->screen);
+    lv_obj_set_pos(ui->screen_animimg_exp_lost, 68, 81);
+    lv_obj_set_size(ui->screen_animimg_exp_lost, 28, 26);
+    lv_obj_add_flag(ui->screen_animimg_exp_lost, LV_OBJ_FLAG_HIDDEN);
+    lv_animimg_set_src(ui->screen_animimg_exp_lost, (const void **) screen_animimg_exp_lost_imgs, 4);
+    lv_animimg_set_duration(ui->screen_animimg_exp_lost, 250*4);
+    lv_animimg_set_repeat_count(ui->screen_animimg_exp_lost, 2);
+    lv_animimg_start(ui->screen_animimg_exp_lost);
+
+    //Write codes screen_animimg_lodding
+    ui->screen_animimg_lodding = lv_animimg_create(ui->screen);
+    lv_obj_set_pos(ui->screen_animimg_lodding, 0, 0);
+    lv_obj_set_size(ui->screen_animimg_lodding, 128, 160);
+    lv_animimg_set_src(ui->screen_animimg_lodding, (const void **) screen_animimg_lodding_imgs, 4);
+    lv_animimg_set_duration(ui->screen_animimg_lodding, 250*4);
+    lv_animimg_set_repeat_count(ui->screen_animimg_lodding, LV_ANIM_REPEAT_INFINITE);
+    lv_animimg_start(ui->screen_animimg_lodding);
 
     //The custom code of screen.
 

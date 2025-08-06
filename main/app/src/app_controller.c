@@ -74,8 +74,8 @@ static void sprite_state_machine_run(EventBits_t events)
         sprite_status.last_state_change_time = xTaskGetTickCount();
         // 不需要手动停止定时器，因为它是一次性的
     }
-    // 2. 检查湿度是否过低
-    else if (sensor_data.adc_percent_ch0 < 20.0f) {
+    // 2. 检查湿度是否过低   
+    if (sensor_data.adc_percent_ch0 < 20.0f) {
         // 如果角色在外（正常或准备回家），则强制进入迷路状态
         if (sprite_status.current_state == SPRITE_STATE_AWAY_NORMAL || sprite_status.current_state == SPRITE_STATE_PREPARING_TO_GO_HOME) {
             if (sprite_status.current_state != SPRITE_STATE_AWAY_LOST) {
@@ -106,7 +106,10 @@ static void sprite_state_machine_run(EventBits_t events)
     switch (sprite_status.current_state) {
         case SPRITE_STATE_AT_HOME_AWAKE:
             ESP_LOGI(TAG, "State: AT_HOME_AWAKE");
-            app_timer_service_start(TIMER_ID_10_MIN_AWAY); // 启动或重置10分钟离家定时器
+            // 仅当定时器未激活时才启动，避免在循环中反复重置
+            if (!app_timer_service_is_active(TIMER_ID_10_MIN_AWAY)) {
+                app_timer_service_start(TIMER_ID_10_MIN_AWAY);
+            }
             if (events & USER_INTERACTION_TAP) {
                 ESP_LOGI(TAG, "Interaction: Pat the sprite, sprite says hello!");
                 // 请求UI控制器播放一个非阻塞的“问候”动画序列
@@ -116,7 +119,10 @@ static void sprite_state_machine_run(EventBits_t events)
 
         case SPRITE_STATE_AT_HOME_SLEEPING:
             ESP_LOGI(TAG, "State: AT_HOME_SLEEPING");
-            app_timer_service_start(TIMER_ID_10_MIN_AWAY); // 启动或重置10分钟离家定时器
+            // 仅当定时器未激活时才启动，避免在循环中反复重置
+            if (!app_timer_service_is_active(TIMER_ID_10_MIN_AWAY)) {
+                app_timer_service_start(TIMER_ID_10_MIN_AWAY);
+            }
             if (events & USER_INTERACTION_TAP) {
                 ESP_LOGI(TAG, "Interaction: Pat the sprite, waking it up.");
                 sprite_status.current_state = SPRITE_STATE_AT_HOME_AWAKE;
@@ -220,6 +226,12 @@ static void update_system_state(EventBits_t events)
     if (events & EVENT_TIMER_48_HOUR_EXPIRED) {
         ESP_LOGI(TAG, "48H timer event triggered!");
     }
+    if (events & EVENT_TIMER_10_MIN_AWAY_EXPIRED) {
+       ESP_LOGI(TAG, "事件: 10分钟离家定时器到期");
+    }
+    if (events & EVENT_TIMER_5_MIN_EXPIRED) {
+       ESP_LOGI(TAG, "事件: 5分钟回家定时器到期");
+    }
     if (events & SENSOR_TEMP_DATA_READY)
     {
         ESP_LOGI(TAG, "Temp data: %1.f",sensor_data.temperature);
@@ -275,11 +287,17 @@ static void app_controller_task(void *param)
             EVENT_TIMER_5_MIN_EXPIRED | EVENT_TIMER_48_HOUR_EXPIRED | EVENT_TIMER_10_MIN_AWAY_EXPIRED,
             pdTRUE,    // 清除事件位
             pdFALSE,   // 等待任意一个事件
-            portMAX_DELAY // 无限等待
+            pdMS_TO_TICKS(1000) // 等待1秒或直到事件发生
         );
-        
-        // 更新系统状态
-        update_system_state(events);
+
+        // --- DEBUG: 每秒打印10分钟定时器的剩余时间 ---
+            uint32_t remaining_ms = app_timer_service_get_remaining_time_ms(TIMER_ID_10_MIN_AWAY);
+            ESP_LOGI(TAG, "DEBUG: 10_MIN_AWAY timer remaining: %lu seconds", remaining_ms / 1000);
+
+        // 只有在实际事件发生时才更新状态，避免超时唤醒时执行
+        if (events) {
+            update_system_state(events);
+        }
         
         // 短暂延迟，以防事件风暴
         vTaskDelay(pdMS_TO_TICKS(50));
