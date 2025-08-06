@@ -45,4 +45,13 @@ void ui_controller_update(sprite_state_t state, float humidity);
  */
 void ui_controller_play_hello_animation(void);
 
+/**
+ * @brief 播放一个“悲伤”动画序列
+ * @details
+ * 这是一个非阻塞的函数。它会启动一个“悲伤”动画，
+ * 并在该动画播放完毕后，通过定时器回调自动切换到“开心”动画。
+ * 这用于在特定条件下（如缺水）响应用户的“拍一拍”交互。
+ */
+void ui_controller_play_sad_animation(void);
+
 #endif // _UI_CONTROLLER_H_

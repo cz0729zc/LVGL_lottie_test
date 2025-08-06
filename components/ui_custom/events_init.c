@@ -16,40 +16,6 @@
 #endif
 
 
-static void screen_background_event_handler (lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    switch (code) {
-    case LV_EVENT_CLICKED:
-    {
-        break;
-    }
-    default:
-        break;
-    }
-}
-
-static void screen_animimg_idel_event_handler (lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    switch (code) {
-    case LV_EVENT_CLICKED:
-    {
-        lv_obj_add_flag(guider_ui.screen_animimg_idel, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(guider_ui.screen_animimg_idel_sleep, LV_OBJ_FLAG_HIDDEN | LV_OBJ_FLAG_CLICK_FOCUSABLE);
-        break;
-    }
-    default:
-        break;
-    }
-}
-
-void events_init_screen (lv_ui *ui)
-{
-    lv_obj_add_event_cb(ui->screen_background, screen_background_event_handler, LV_EVENT_ALL, ui);
-    lv_obj_add_event_cb(ui->screen_animimg_idel, screen_animimg_idel_event_handler, LV_EVENT_ALL, ui);
-}
-
 
 void events_init(lv_ui *ui)
 {

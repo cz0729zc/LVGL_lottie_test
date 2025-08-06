@@ -21,6 +21,10 @@ typedef struct
   
 	lv_obj_t *screen;
 	bool screen_del;
+	lv_obj_t *screen_background3;
+	lv_obj_t *screen_cominghome;
+	lv_obj_t *screen_background2;
+	lv_obj_t *screen_animimg_ground2;
 	lv_obj_t *screen_background;
 	lv_obj_t *screen_animimg_ground;
 	lv_obj_t *screen_state1;
@@ -37,6 +41,8 @@ typedef struct
 	lv_obj_t *screen_animimg_exp_flood;
 	lv_obj_t *screen_animimg_plant_normal;
 	lv_obj_t *screen_animimg_flood;
+	lv_obj_t *screen_animimg_exp_cominghome;
+	lv_obj_t *screen_animimg_idle_cominghome;
 }lv_ui;
 
 typedef void (*ui_setup_scr_t)(lv_ui * ui);
@@ -65,6 +71,16 @@ extern lv_ui guider_ui;
 
 
 void setup_scr_screen(lv_ui *ui);
+LV_IMAGE_DECLARE(_pinkPlant_RGB565A8_128x160);
+LV_IMAGE_DECLARE(_green_layer_RGB565A8_128x160);
+LV_IMAGE_DECLARE(_background_dessert_RGB565A8_128x160);
+LV_IMAGE_DECLARE(screen_animimg_ground2dessert_cloud1);
+LV_IMAGE_DECLARE(screen_animimg_ground2dessert_cloud2);
+LV_IMAGE_DECLARE(screen_animimg_ground2dessert_cloud3);
+LV_IMAGE_DECLARE(screen_animimg_ground2dessert_cloud4);
+LV_IMAGE_DECLARE(screen_animimg_ground2dessert_cloud5);
+LV_IMAGE_DECLARE(screen_animimg_ground2dessert_cloud6);
+LV_IMAGE_DECLARE(screen_animimg_ground2dessert_cloud7);
 LV_IMAGE_DECLARE(_background_RGB565A8_128x160);
 LV_IMAGE_DECLARE(screen_animimg_grounddeceration1);
 LV_IMAGE_DECLARE(screen_animimg_grounddeceration2);
@@ -122,6 +138,14 @@ LV_IMAGE_DECLARE(screen_animimg_floodflooding4);
 LV_IMAGE_DECLARE(screen_animimg_floodflooding5);
 LV_IMAGE_DECLARE(screen_animimg_floodflooding6);
 LV_IMAGE_DECLARE(screen_animimg_floodflooding7);
+LV_IMAGE_DECLARE(screen_animimg_exp_cominghomebackhome_expression1);
+LV_IMAGE_DECLARE(screen_animimg_exp_cominghomebackhome_expression2);
+LV_IMAGE_DECLARE(screen_animimg_exp_cominghomebackhome_expression3);
+LV_IMAGE_DECLARE(screen_animimg_exp_cominghomebackhome_expression4);
+LV_IMAGE_DECLARE(screen_animimg_idle_cominghomewalkLeft1);
+LV_IMAGE_DECLARE(screen_animimg_idle_cominghomewalkLeft2);
+LV_IMAGE_DECLARE(screen_animimg_idle_cominghomewalkLeft3);
+LV_IMAGE_DECLARE(screen_animimg_idle_cominghomewalkLeft4);
 
 
 

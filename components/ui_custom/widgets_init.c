@@ -94,6 +94,15 @@ void digital_clock_count(int * hour, int * minute, int * seconds, char * meridie
 }
 
 
+const lv_image_dsc_t * screen_animimg_ground2_imgs[7] = {
+    &screen_animimg_ground2dessert_cloud1,
+    &screen_animimg_ground2dessert_cloud2,
+    &screen_animimg_ground2dessert_cloud3,
+    &screen_animimg_ground2dessert_cloud4,
+    &screen_animimg_ground2dessert_cloud5,
+    &screen_animimg_ground2dessert_cloud6,
+    &screen_animimg_ground2dessert_cloud7,
+};
 const lv_image_dsc_t * screen_animimg_ground_imgs[4] = {
     &screen_animimg_grounddeceration1,
     &screen_animimg_grounddeceration2,
@@ -170,4 +179,16 @@ const lv_image_dsc_t * screen_animimg_flood_imgs[7] = {
     &screen_animimg_floodflooding5,
     &screen_animimg_floodflooding6,
     &screen_animimg_floodflooding7,
+};
+const lv_image_dsc_t * screen_animimg_exp_cominghome_imgs[4] = {
+    &screen_animimg_exp_cominghomebackhome_expression1,
+    &screen_animimg_exp_cominghomebackhome_expression2,
+    &screen_animimg_exp_cominghomebackhome_expression3,
+    &screen_animimg_exp_cominghomebackhome_expression4,
+};
+const lv_image_dsc_t * screen_animimg_idle_cominghome_imgs[4] = {
+    &screen_animimg_idle_cominghomewalkLeft1,
+    &screen_animimg_idle_cominghomewalkLeft2,
+    &screen_animimg_idle_cominghomewalkLeft3,
+    &screen_animimg_idle_cominghomewalkLeft4,
 };

@@ -20,9 +20,15 @@ static const char *TAG = "ui_controller";
 static lv_ui *p_ui = NULL;
 // 用于“问候”动画序列的一次性定时器
 static TimerHandle_t hello_anim_timer = NULL;
+// 用于周期性表情提醒的周期性定时器
+static TimerHandle_t expression_timer = NULL;
+
+// 用于在定时器回调中安全访问的当前湿度缓存
+static float current_humidity = 0.0f;
 
 // 前向声明定时器回调函数
 static void hello_anim_timer_cb(TimerHandle_t xTimer);
+static void expression_timer_cb(TimerHandle_t xTimer);
 
 /**
  * @brief 初始化UI控制器
@@ -49,6 +55,19 @@ void ui_controller_init(lv_ui *ui)
         ESP_LOGE(TAG, "Failed to create hello_anim_timer");
     }
 
+    // 创建一个周期性的软件定时器，用于处理周期性表情动画
+    expression_timer = xTimerCreate(
+        "expression_timer",         // 定时器名称
+        pdMS_TO_TICKS(10000),       // 定时器周期 (10秒)
+        pdTRUE,                     // pdTRUE 表示这是周期性定时器
+        (void *)1,                  // 定时器ID，这里未使用
+        expression_timer_cb         // 定时器到期时调用的回调函数
+    );
+
+    if (expression_timer == NULL) {
+        ESP_LOGE(TAG, "Failed to create expression_timer");
+    }
+
     ESP_LOGI(TAG, "UI controller initialized.");
 }
 
@@ -62,12 +81,27 @@ void ui_controller_update(sprite_state_t state, float humidity)
         return;
     }
 
+    // 更新当前湿度缓存，以便定时器回调可以访问
+    current_humidity = humidity;
+
     // 静态变量，用于检测状态变化
     static sprite_state_t last_state = SPRITE_STATE_NULL;
 
     // 仅在主逻辑状态发生变化时，才执行重量级的UI重置和动画切换
     if (state != last_state) {
         ESP_LOGI(TAG, "UI state changed from %d to %d", last_state, state);
+
+        // 根据状态变化，启动或停止周期性表情定时器
+        bool is_at_home_now = (state == SPRITE_STATE_AT_HOME_AWAKE || state == SPRITE_STATE_AT_HOME_SLEEPING);
+        bool was_at_home_before = (last_state == SPRITE_STATE_AT_HOME_AWAKE || last_state == SPRITE_STATE_AT_HOME_SLEEPING);
+
+        if (is_at_home_now && !was_at_home_before) {
+            ESP_LOGI(TAG, "Sprite is at home, starting expression timer.");
+            xTimerStart(expression_timer, 0);
+        } else if (!is_at_home_now && was_at_home_before) {
+            ESP_LOGI(TAG, "Sprite left home, stopping expression timer.");
+            xTimerStop(expression_timer, 0);
+        }
 
         // 1. 隐藏所有与主逻辑状态相关的动画，为新状态做准备
         lv_obj_add_flag(p_ui->screen_background, LV_OBJ_FLAG_HIDDEN);
@@ -97,9 +131,8 @@ void ui_controller_update(sprite_state_t state, float humidity)
                 lv_obj_clear_flag(p_ui->screen_animimg_idel, LV_OBJ_FLAG_HIDDEN);
                 lv_animimg_set_repeat_count(p_ui->screen_animimg_idel, LV_ANIM_PLAYTIME_INFINITE);
                 lv_animimg_start(p_ui->screen_animimg_idel);
-                lv_obj_clear_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
-                lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_happy, 2);
-                lv_animimg_start(p_ui->screen_animimg_exp_happy);
+                // 当进入此状态时，不再直接播放表情动画
+                // 这个功能已移交给周期性定时器 expression_timer
                 break;
 
             case SPRITE_STATE_AT_HOME_SLEEPING:
@@ -123,9 +156,9 @@ void ui_controller_update(sprite_state_t state, float humidity)
                 lv_obj_clear_flag(p_ui->screen_animimg_idel_flood, LV_OBJ_FLAG_HIDDEN);
                 lv_animimg_set_repeat_count(p_ui->screen_animimg_idel_flood, 1);
                 lv_animimg_start(p_ui->screen_animimg_idel_flood);
-                lv_obj_clear_flag(p_ui->screen_animimg_exp_sad, LV_OBJ_FLAG_HIDDEN);
-                lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_sad, LV_ANIM_PLAYTIME_INFINITE);
-                lv_animimg_start(p_ui->screen_animimg_exp_sad);
+                lv_obj_clear_flag(p_ui->screen_animimg_exp_flood, LV_OBJ_FLAG_HIDDEN);
+                lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_flood, LV_ANIM_PLAYTIME_INFINITE);
+                lv_animimg_start(p_ui->screen_animimg_exp_flood);
                 lv_obj_clear_flag(p_ui->screen_animimg_flood, LV_OBJ_FLAG_HIDDEN);
                 lv_animimg_set_repeat_count(p_ui->screen_animimg_flood, LV_ANIM_PLAYTIME_INFINITE);
                 lv_animimg_start(p_ui->screen_animimg_flood);
@@ -145,7 +178,7 @@ void ui_controller_update(sprite_state_t state, float humidity)
             case SPRITE_STATE_PREPARING_TO_GO_HOME:
                 ESP_LOGD(TAG, "UI State: %d (No specific UI implemented yet)", state);
                 break;
-
+    
             default:
                 ESP_LOGW(TAG, "Unhandled UI state: %d", state);
                 break;
@@ -183,14 +216,56 @@ static void hello_anim_timer_cb(TimerHandle_t xTimer)
     
     // 确保在UI操作期间获取锁
     if (lvgl_port_lock(0)) {
-        // 隐藏“问候”动画对象
+        // 隐藏“问候”和“悲伤”（如果正在播放）动画对象
         lv_obj_add_flag(p_ui->screen_animimg_exp_hello, LV_OBJ_FLAG_HIDDEN);
-        
-        // 显示并开始播放“开心”动画
-        lv_obj_clear_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
-        lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_happy, 2);
-        lv_animimg_start(p_ui->screen_animimg_exp_happy);
+        lv_obj_add_flag(p_ui->screen_animimg_exp_sad, LV_OBJ_FLAG_HIDDEN);
 
+        // 为了提供即时反馈，交互结束后，根据当前湿度立即播放一次表情动画
+        if (current_humidity < 20.0f) {
+            lv_obj_clear_flag(p_ui->screen_animimg_exp_sad, LV_OBJ_FLAG_HIDDEN);
+            lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_sad, 2);
+            lv_animimg_start(p_ui->screen_animimg_exp_sad);
+        } else {
+            lv_obj_clear_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
+            lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_happy, 2);
+            lv_animimg_start(p_ui->screen_animimg_exp_happy);
+        }
+
+        // 释放锁
+        lvgl_port_unlock();
+    }
+}
+
+/**
+ * @brief 播放一个“悲伤”动画序列
+ */
+void ui_controller_play_sad_animation(void)
+{
+    if (p_ui == NULL || hello_anim_timer == NULL) {
+        ESP_LOGE(TAG, "Cannot play sad animation, controller not initialized or timer not created.");
+        return;
+    }
+
+    ESP_LOGI(TAG, "Starting sad animation sequence.");
+
+    // 确保在UI操作期间获取锁
+    if (lvgl_port_lock(0)) {
+        // 停止当前可能正在播放的任何表情动画，以“悲伤”为先
+        lv_obj_add_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(p_ui->screen_animimg_exp_hello, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(p_ui->screen_animimg_exp_sleep, LV_OBJ_FLAG_HIDDEN);
+
+        // 准备并播放“悲伤”动画
+        lv_obj_clear_flag(p_ui->screen_animimg_exp_sad, LV_OBJ_FLAG_HIDDEN);
+        lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_sad, 2); // 播放两次以确保动画完整
+        lv_animimg_start(p_ui->screen_animimg_exp_sad);
+
+        // 启动2秒的定时器，时间到后它会调用回调函数来切换到“开心”动画
+        // 我们复用同一个定时器和回调
+        if (xTimerStart(hello_anim_timer, 0) != pdPASS) {
+            ESP_LOGE(TAG, "Failed to start timer for sad animation sequence");
+        }
+        
         // 释放锁
         lvgl_port_unlock();
     }
@@ -229,3 +304,40 @@ void ui_controller_play_hello_animation(void)
         lvgl_port_unlock();
     }
 }
+
+/**
+ * @brief 周期性表情动画的定时器回调函数
+ * @details
+ * 此函数由 expression_timer 周期性调用 (例如每10秒)。
+ * 它会检查当前的湿度，并播放一次性的“开心”或“悲伤”动画，
+ * 以此来主动提醒用户小精灵的当前状态。
+ * @param xTimer 指向触发此回调的定时器的句柄 (未使用)
+ */
+static void expression_timer_cb(TimerHandle_t xTimer)
+{
+    if (p_ui == NULL) return;
+    ESP_LOGI(TAG, "Periodic expression timer expired. Playing an expression animation.");
+
+    if (lvgl_port_lock(0)) {
+        // 隐藏所有可能正在播放的表情，为新表情做准备
+        lv_obj_add_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(p_ui->screen_animimg_exp_sad, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(p_ui->screen_animimg_exp_hello, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(p_ui->screen_animimg_exp_sleep, LV_OBJ_FLAG_HIDDEN);
+
+        // 根据缓存的湿度值，播放一次性动画
+        if (current_humidity < 20.0f) {
+            ESP_LOGD(TAG, "Humidity is low (%.1f%%), playing sad animation.", current_humidity);
+            lv_obj_clear_flag(p_ui->screen_animimg_exp_sad, LV_OBJ_FLAG_HIDDEN);
+            lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_sad, 3);
+            lv_animimg_start(p_ui->screen_animimg_exp_sad);
+        } else {
+            ESP_LOGD(TAG, "Humidity is normal (%.1f%%), playing happy animation.", current_humidity);
+            lv_obj_clear_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
+            lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_happy, 3);
+            lv_animimg_start(p_ui->screen_animimg_exp_happy);
+        }
+        lvgl_port_unlock();
+    }
+}
+

@@ -24,6 +24,7 @@ void digital_clock_count(int * hour, int * minute, int * seconds, char * meridie
 #endif
 
 
+extern const lv_image_dsc_t * screen_animimg_ground2_imgs[7];
 extern const lv_image_dsc_t * screen_animimg_ground_imgs[4];
 extern const lv_image_dsc_t * screen_animimg_idel_sleep_imgs[5];
 extern const lv_image_dsc_t * screen_animimg_idel_awake_imgs[5];
@@ -36,6 +37,8 @@ extern const lv_image_dsc_t * screen_animimg_exp_sleep_imgs[4];
 extern const lv_image_dsc_t * screen_animimg_exp_flood_imgs[4];
 extern const lv_image_dsc_t * screen_animimg_plant_normal_imgs[4];
 extern const lv_image_dsc_t * screen_animimg_flood_imgs[7];
+extern const lv_image_dsc_t * screen_animimg_exp_cominghome_imgs[4];
+extern const lv_image_dsc_t * screen_animimg_idle_cominghome_imgs[4];
 
 
 #ifdef __cplusplus
