@@ -34,8 +34,9 @@ void ui_controller_init(lv_ui *ui);
  * @param state 当前的小精灵逻辑状态 (sprite_state_t)。
  * @param previous_state 进入特殊状态（如洪水）前的正常状态。
  * @param humidity 当前的土壤湿度百分比 (0-100)。
+ * @param light_intensity 当前的光照强度百分比 (0-100)。
  */
-void ui_controller_update(sprite_state_t state, sprite_state_t previous_state, float humidity);
+void ui_controller_update(sprite_state_t state, sprite_state_t previous_state, float humidity, float light_intensity);
 
 /**
  * @brief 播放一个“问候”动画序列

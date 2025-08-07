@@ -295,7 +295,7 @@ static void update_system_state(EventBits_t events)
     // 将当前状态和湿度数据传递给UI控制器，由它负责所有UI更新
     // 在调用任何LVGL API之前，获取锁
     if (lvgl_port_lock(0)) {
-        ui_controller_update(sprite_status.current_state, sprite_status.previous_normal_state, sensor_data.adc_percent_ch0);
+        ui_controller_update(sprite_status.current_state, sprite_status.previous_normal_state, sensor_data.adc_percent_ch0, sensor_data.adc_percent_ch1);
         // 完成UI操作后，释放锁
         lvgl_port_unlock();
     }

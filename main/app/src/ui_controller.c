@@ -34,7 +34,7 @@ static TimerHandle_t plant_anim_finish_timer = NULL; // 植物动画播放完毕
 
 // --- 状态缓存 ---
 static float current_humidity = 0.0f;       // 当前湿度缓存
-static uint8_t current_away_background = 0; // 当前外出背景选择
+static uint8_t current_away_background = 0; // 当前外出背景选择, 0=暗(bg2), 1=亮(bg3)
 static sprite_state_t current_state = SPRITE_STATE_NULL; // 当前状态缓存
 
 // --- 过渡动画状态跟踪 ---
@@ -44,14 +44,16 @@ static struct {
     sprite_state_t target_state;     // 过渡结束后的目标状态
     sprite_state_t target_previous_state; // 新增：记录目标状态的前一个状态
     float target_humidity;           // 过渡结束时要使用的湿度值
-} transition_data = { .is_in_transition = false, .source_state = SPRITE_STATE_NULL, .target_state = SPRITE_STATE_NULL, .target_previous_state = SPRITE_STATE_NULL, .target_humidity = 0.0f };
+    float target_light_intensity;    // 新增：过渡结束时要使用的光照强度
+} transition_data = { .is_in_transition = false, .source_state = SPRITE_STATE_NULL, .target_state = SPRITE_STATE_NULL, .target_previous_state = SPRITE_STATE_NULL, .target_humidity = 0.0f, .target_light_intensity = 0.0f };
 
 // --- 函数前向声明 ---
 static void hello_anim_timer_cb(TimerHandle_t xTimer);
 static void expression_timer_cb(TimerHandle_t xTimer);
 static void transition_timer_cb(TimerHandle_t xTimer);
 static void plant_anim_finish_cb(TimerHandle_t xTimer); // 新增的回调
-static void apply_ui_update(sprite_state_t state, sprite_state_t previous_state, float humidity);
+static void apply_ui_update(sprite_state_t state, sprite_state_t previous_state, float humidity, float light_intensity);
+static void select_and_show_away_background(float light_intensity);
 
 /**
  * @brief 初始化UI控制器，创建所有需要的定时器。
@@ -82,8 +84,9 @@ void ui_controller_init(lv_ui *ui) {
  * @param state 新的应用状态。
  * @param previous_state 进入特殊状态前的正常状态。
  * @param humidity 当前湿度。
+ * @param light_intensity 当前光照强度。
  */
-void ui_controller_update(sprite_state_t state, sprite_state_t previous_state, float humidity) {
+void ui_controller_update(sprite_state_t state, sprite_state_t previous_state, float humidity, float light_intensity) {
     if (p_ui == NULL) return;
  
     current_humidity = humidity;
@@ -112,6 +115,7 @@ void ui_controller_update(sprite_state_t state, sprite_state_t previous_state, f
             transition_data.target_state = state;
             transition_data.target_previous_state = previous_state;
             transition_data.target_humidity = humidity;
+            transition_data.target_light_intensity = light_intensity; // 缓存光照强度
             transition_data.is_in_transition = true;
             
             if (lvgl_port_lock(0)) {
@@ -147,10 +151,10 @@ void ui_controller_update(sprite_state_t state, sprite_state_t previous_state, f
             if (xTimerStart(transition_timer, 0) != pdPASS) {
                 ESP_LOGE(TAG, "Failed to start transition_timer, skipping transition.");
                 transition_data.is_in_transition = false;
-                apply_ui_update(state, previous_state, humidity);
+                apply_ui_update(state, previous_state, humidity, light_intensity);
             }
         } else {
-            apply_ui_update(state, previous_state, humidity);
+            apply_ui_update(state, previous_state, humidity, light_intensity);
         }
         last_state = state;
     } else { // 状态未改变，但湿度可能改变
@@ -162,7 +166,7 @@ void ui_controller_update(sprite_state_t state, sprite_state_t previous_state, f
 
         if (crossed_20_up || crossed_20_down || crossed_80_up || crossed_80_down) {
             ESP_LOGI(TAG, "Humidity crossed threshold (from %.1f to %.1f), forcing full UI update.", last_humidity, humidity);
-            apply_ui_update(state, previous_state, humidity);
+            apply_ui_update(state, previous_state, humidity, light_intensity);
         } else {
             // 如果只是小范围变化，只更新状态图标
             if (lvgl_port_lock(0)) {
@@ -184,8 +188,9 @@ void ui_controller_update(sprite_state_t state, sprite_state_t previous_state, f
  * @param state 要应用的目标状态。
  * @param previous_state 进入特殊状态前的正常状态。
  * @param humidity 对应的湿度值。
+ * @param light_intensity 对应的光照强度值。
  */
-static void apply_ui_update(sprite_state_t state, sprite_state_t previous_state, float humidity) {
+static void apply_ui_update(sprite_state_t state, sprite_state_t previous_state, float humidity, float light_intensity) {
     if (p_ui == NULL) return;
 
     if (lvgl_port_lock(0)) {
@@ -313,14 +318,10 @@ static void apply_ui_update(sprite_state_t state, sprite_state_t previous_state,
                 break;
 
             case SPRITE_STATE_AWAY_NORMAL:
-                current_away_background = (esp_random() % 2);
-                if (current_away_background == 0) {
-                    lv_obj_clear_flag(p_ui->screen_background2, LV_OBJ_FLAG_HIDDEN);
-                    lv_obj_clear_flag(p_ui->screen_animimg_ground2, LV_OBJ_FLAG_HIDDEN);
-                    lv_animimg_start(p_ui->screen_animimg_ground2);
-                } else {
-                    lv_obj_clear_flag(p_ui->screen_background3, LV_OBJ_FLAG_HIDDEN);
-                }
+                // 当进入外出状态时，根据光照强度选择一次背景
+                // 这个选择会被 current_away_background 变量记住
+                select_and_show_away_background(light_intensity);
+
                 if (humidity > 80.0f) {
                     // 湿度过高，播放水淹动画
                     lv_obj_clear_flag(p_ui->screen_animimg_idel_flood, LV_OBJ_FLAG_HIDDEN);
@@ -389,7 +390,7 @@ static void transition_timer_cb(TimerHandle_t xTimer) {
     ESP_LOGI(TAG, "Transition animation completed, applying target state: %d", transition_data.target_state);
     
     transition_data.is_in_transition = false;
-    apply_ui_update(transition_data.target_state, transition_data.target_previous_state, transition_data.target_humidity);
+    apply_ui_update(transition_data.target_state, transition_data.target_previous_state, transition_data.target_humidity, transition_data.target_light_intensity);
 
     // 检查此次过渡是否是从“准备回家”到“在家”
     bool target_is_home = (transition_data.target_state == SPRITE_STATE_AT_HOME_AWAKE || transition_data.target_state == SPRITE_STATE_AT_HOME_SLEEPING);
@@ -526,5 +527,30 @@ void ui_controller_play_plant_animation(void) {
     // 启动一个2秒后触发的回调，以隐藏动画
     if (xTimerStart(plant_anim_finish_timer, 0) != pdPASS) {
         ESP_LOGE(TAG, "Failed to start plant_anim_finish_timer.");
+    }
+}
+
+
+/**
+ * @brief 根据光照强度选择并显示外出背景
+ * @details
+ *  - 决定使用哪个外出背景 (background2 或 background3)
+ *  - 更新全局变量 `current_away_background` 以便其他状态（如LOST, PREPARING_TO_GO_HOME）可以复用此决策
+ *  - 显示对应的背景和地面动画
+ * @note `light_intensity` 参数是反向的，值越大代表光线越暗。
+ * @param light_intensity 当前光照强度百分比 (0-100)
+ */
+static void select_and_show_away_background(float light_intensity) {
+    // 阈值定为50%。因为值是反向的，所以大于50代表光线暗。
+    if (light_intensity > 50.0f) {
+        // 光线暗，选择背景2
+        current_away_background = 0;
+        lv_obj_clear_flag(p_ui->screen_background2, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(p_ui->screen_animimg_ground2, LV_OBJ_FLAG_HIDDEN);
+        lv_animimg_start(p_ui->screen_animimg_ground2);
+    } else {
+        // 光线亮，选择背景3
+        current_away_background = 1;
+        lv_obj_clear_flag(p_ui->screen_background3, LV_OBJ_FLAG_HIDDEN);
     }
 }

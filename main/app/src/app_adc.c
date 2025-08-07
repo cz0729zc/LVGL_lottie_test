@@ -75,6 +75,10 @@ void adc_app_task(void *param)
     static median_filter_t soil_humidity_filter;
     median_filter_init(&soil_humidity_filter);
 
+    // 为光照传感器(CH1)创建一个中位值滤波器实例
+    static median_filter_t light_sensor_filter;
+    median_filter_init(&light_sensor_filter);
+ 
    // 震动检测相关变量
    static int last_vibration_voltage = 3300;      // 上一次的电压值，用于检测下降沿
    static uint32_t last_notify_time = 0;          // 上次成功通知的时间戳
@@ -91,9 +95,11 @@ void adc_app_task(void *param)
         for (int i = 0; i < ch_num; ++i) {
             uint16_t adc_val = values[i];
             
-            // 如果是土壤湿度传感器(CH0)，则应用滤波器
-            if (i == 0) {
+            // 根据通道应用对应的滤波器
+            if (i == 0) { // CH0: 土壤湿度
                 adc_val = median_filter_update(&soil_humidity_filter, adc_val);
+            } else if (i == 1) { // CH1: 光照强度
+                adc_val = median_filter_update(&light_sensor_filter, adc_val);
             }
 
             int voltage = 0;
@@ -159,7 +165,7 @@ void adc_app_task(void *param)
            }
         }
 
-        ESP_LOGI(TAG, "Soil Value： %0.1f%%",percent_ch0);
+        ESP_LOGI(TAG, "Soil Value： %0.1f%% Light Value：%0.1f%%",percent_ch0,100 - percent_ch1);
         // 滤波和映射后的数据已经很平滑，直接通知控制器更新
         app_controller_notify_adc_data(percent_ch0, 100.0f - percent_ch1);
         
