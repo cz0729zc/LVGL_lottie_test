@@ -42,15 +42,16 @@ static struct {
     bool is_in_transition;           // 是否正处于过场动画中
     sprite_state_t source_state;     // 新增：记录过渡前的状态
     sprite_state_t target_state;     // 过渡结束后的目标状态
+    sprite_state_t target_previous_state; // 新增：记录目标状态的前一个状态
     float target_humidity;           // 过渡结束时要使用的湿度值
-} transition_data = { .is_in_transition = false, .source_state = SPRITE_STATE_NULL, .target_state = SPRITE_STATE_NULL, .target_humidity = 0.0f };
+} transition_data = { .is_in_transition = false, .source_state = SPRITE_STATE_NULL, .target_state = SPRITE_STATE_NULL, .target_previous_state = SPRITE_STATE_NULL, .target_humidity = 0.0f };
 
 // --- 函数前向声明 ---
 static void hello_anim_timer_cb(TimerHandle_t xTimer);
 static void expression_timer_cb(TimerHandle_t xTimer);
 static void transition_timer_cb(TimerHandle_t xTimer);
 static void plant_anim_finish_cb(TimerHandle_t xTimer); // 新增的回调
-static void apply_ui_update(sprite_state_t state, float humidity);
+static void apply_ui_update(sprite_state_t state, sprite_state_t previous_state, float humidity);
 
 /**
  * @brief 初始化UI控制器，创建所有需要的定时器。
@@ -79,11 +80,12 @@ void ui_controller_init(lv_ui *ui) {
 /**
  * @brief 更新UI的入口函数，包含过场动画逻辑。
  * @param state 新的应用状态。
+ * @param previous_state 进入特殊状态前的正常状态。
  * @param humidity 当前湿度。
  */
-void ui_controller_update(sprite_state_t state, float humidity) {
+void ui_controller_update(sprite_state_t state, sprite_state_t previous_state, float humidity) {
     if (p_ui == NULL) return;
-
+ 
     current_humidity = humidity;
     current_state = state;
 
@@ -107,6 +109,7 @@ void ui_controller_update(sprite_state_t state, float humidity) {
             
             transition_data.source_state = last_state; // 记录原始状态
             transition_data.target_state = state;
+            transition_data.target_previous_state = previous_state;
             transition_data.target_humidity = humidity;
             transition_data.is_in_transition = true;
             
@@ -143,10 +146,10 @@ void ui_controller_update(sprite_state_t state, float humidity) {
             if (xTimerStart(transition_timer, 0) != pdPASS) {
                 ESP_LOGE(TAG, "Failed to start transition_timer, skipping transition.");
                 transition_data.is_in_transition = false;
-                apply_ui_update(state, humidity);
+                apply_ui_update(state, previous_state, humidity);
             }
         } else {
-            apply_ui_update(state, humidity);
+            apply_ui_update(state, previous_state, humidity);
         }
         last_state = state;
     } else {
@@ -166,9 +169,10 @@ void ui_controller_update(sprite_state_t state, float humidity) {
 /**
  * @brief 应用实际的UI状态更新（不含过场动画逻辑）。
  * @param state 要应用的目标状态。
+ * @param previous_state 进入特殊状态前的正常状态。
  * @param humidity 对应的湿度值。
  */
-static void apply_ui_update(sprite_state_t state, float humidity) {
+static void apply_ui_update(sprite_state_t state, sprite_state_t previous_state, float humidity) {
     if (p_ui == NULL) return;
 
     if (lvgl_port_lock(0)) {
@@ -231,21 +235,34 @@ static void apply_ui_update(sprite_state_t state, float humidity) {
                 break;
 
             case SPRITE_STATE_EVENT_FLOODED:
-                //lv_obj_clear_flag(p_ui->screen_background, LV_OBJ_FLAG_HIDDEN);
-                if (current_away_background == 0) {
-                    lv_obj_clear_flag(p_ui->screen_background2, LV_OBJ_FLAG_HIDDEN);
-                    lv_obj_clear_flag(p_ui->screen_animimg_ground2, LV_OBJ_FLAG_HIDDEN);
-                    lv_animimg_start(p_ui->screen_animimg_ground2);
-                } else {
-                    lv_obj_clear_flag(p_ui->screen_background3, LV_OBJ_FLAG_HIDDEN);
+                { // 使用花括号创建一个新的作用域
+                    // 判断洪水发生前的状态是在家还是在外
+                    bool was_at_home = (previous_state == SPRITE_STATE_AT_HOME_AWAKE ||
+                                        previous_state == SPRITE_STATE_AT_HOME_SLEEPING);
+
+                    if (was_at_home) {
+                        // 如果之前在家，显示家庭背景
+                        lv_obj_clear_flag(p_ui->screen_background, LV_OBJ_FLAG_HIDDEN);
+                    } else {
+                        // 如果之前在外，根据 current_away_background 显示对应的外出背景
+                        if (current_away_background == 0) {
+                            lv_obj_clear_flag(p_ui->screen_background2, LV_OBJ_FLAG_HIDDEN);
+                            lv_obj_clear_flag(p_ui->screen_animimg_ground2, LV_OBJ_FLAG_HIDDEN);
+                            lv_animimg_start(p_ui->screen_animimg_ground2);
+                        } else {
+                            lv_obj_clear_flag(p_ui->screen_background3, LV_OBJ_FLAG_HIDDEN);
+                        }
+                    }
+
+                    // 统一显示洪水动画
+                    lv_obj_clear_flag(p_ui->screen_animimg_idel_flood, LV_OBJ_FLAG_HIDDEN);
+                    lv_animimg_start(p_ui->screen_animimg_idel_flood);
+                    lv_obj_clear_flag(p_ui->screen_animimg_exp_flood, LV_OBJ_FLAG_HIDDEN);
+                    lv_animimg_start(p_ui->screen_animimg_exp_flood);
+                    lv_obj_clear_flag(p_ui->screen_animimg_flood, LV_OBJ_FLAG_HIDDEN);
+                    lv_animimg_start(p_ui->screen_animimg_flood);
+                    xTimerStop(expression_timer, 0);
                 }
-                lv_obj_clear_flag(p_ui->screen_animimg_idel_flood, LV_OBJ_FLAG_HIDDEN);
-                lv_animimg_start(p_ui->screen_animimg_idel_flood);
-                lv_obj_clear_flag(p_ui->screen_animimg_exp_flood, LV_OBJ_FLAG_HIDDEN);
-                lv_animimg_start(p_ui->screen_animimg_exp_flood);
-                lv_obj_clear_flag(p_ui->screen_animimg_flood, LV_OBJ_FLAG_HIDDEN);
-                lv_animimg_start(p_ui->screen_animimg_flood);
-                xTimerStop(expression_timer, 0);
                 break;
             
             case SPRITE_STATE_AWAY_LOST:
@@ -343,7 +360,7 @@ static void transition_timer_cb(TimerHandle_t xTimer) {
     ESP_LOGI(TAG, "Transition animation completed, applying target state: %d", transition_data.target_state);
     
     transition_data.is_in_transition = false;
-    apply_ui_update(transition_data.target_state, transition_data.target_humidity);
+    apply_ui_update(transition_data.target_state, transition_data.target_previous_state, transition_data.target_humidity);
 
     // 检查此次过渡是否是从“准备回家”到“在家”
     bool target_is_home = (transition_data.target_state == SPRITE_STATE_AT_HOME_AWAKE || transition_data.target_state == SPRITE_STATE_AT_HOME_SLEEPING);

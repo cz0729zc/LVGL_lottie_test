@@ -32,9 +32,10 @@ void ui_controller_init(lv_ui *ui);
  * 它会根据传入的状态和湿度，统一管理和更新屏幕上的所有UI元素。
  *
  * @param state 当前的小精灵逻辑状态 (sprite_state_t)。
+ * @param previous_state 进入特殊状态（如洪水）前的正常状态。
  * @param humidity 当前的土壤湿度百分比 (0-100)。
  */
-void ui_controller_update(sprite_state_t state, float humidity);
+void ui_controller_update(sprite_state_t state, sprite_state_t previous_state, float humidity);
 
 /**
  * @brief 播放一个“问候”动画序列

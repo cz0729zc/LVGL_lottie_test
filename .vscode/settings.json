@@ -29,7 +29,7 @@
     "timers.h": "c"
   },
   "idf.flashType": "UART",
-  "idf.portWin": "COM18",
+  "idf.portWin": "COM24",
   "clangd.path": "D:\\Development_Tool\\ESP32\\.espressif\\tools\\esp-clang\\16.0.1-fe4f10a809\\esp-clang\\bin\\clangd.exe",
   "clangd.arguments": [
     "--background-index",
