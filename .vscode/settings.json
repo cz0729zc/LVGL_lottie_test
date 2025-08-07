@@ -25,7 +25,8 @@
     "esp_lvgl_port.h": "c",
     "lvgl.h": "c",
     "ui_controller.h": "c",
-    "numbers": "c"
+    "numbers": "c",
+    "timers.h": "c"
   },
   "idf.flashType": "UART",
   "idf.portWin": "COM18",

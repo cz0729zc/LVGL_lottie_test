@@ -293,8 +293,14 @@ static void app_controller_task(void *param)
         );
 
         // --- DEBUG: 每秒打印10分钟定时器的剩余时间 ---
-            uint32_t remaining_ms = app_timer_service_get_remaining_time_ms(TIMER_ID_10_MIN_AWAY);
-            ESP_LOGI(TAG, "DEBUG: 10_MIN_AWAY timer remaining: %lu seconds", remaining_ms / 1000);
+            if (app_timer_service_is_active(TIMER_ID_5_MIN_GO_HOME)) {
+                uint32_t remaining_ms = app_timer_service_get_remaining_time_ms(TIMER_ID_5_MIN_GO_HOME);
+                ESP_LOGI(TAG, "DEBUG: 5_MIN_GO_HOME timer remaining: %lu seconds", remaining_ms / 1000);
+            }
+            if (app_timer_service_is_active(TIMER_ID_10_MIN_AWAY)) {
+                uint32_t remaining_ms = app_timer_service_get_remaining_time_ms(TIMER_ID_10_MIN_AWAY);
+                ESP_LOGI(TAG, "DEBUG: TIMER_ID_10_MIN_AWAY timer remaining: %lu seconds", remaining_ms / 1000);
+            }
 
         // 只有在实际事件发生时才更新状态，避免超时唤醒时执行
         if (events) {

@@ -46,6 +46,15 @@ void ui_controller_update(sprite_state_t state, float humidity);
 void ui_controller_play_hello_animation(void);
 
 /**
+ * @brief 播放“植物”动画序列
+ * @details
+ * 这是一个非阻塞的函数。它会启动一个“植物”动画播放两次，
+ * 并在播放完毕后通过定时器自动隐藏。
+ * 这用于响应从外出归家的事件。
+ */
+void ui_controller_play_plant_animation(void);
+
+/**
  * @brief 播放一个“悲伤”动画序列
  * @details
  * 这是一个非阻塞的函数。它会启动一个“悲伤”动画，

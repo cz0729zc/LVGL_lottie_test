@@ -26,7 +26,7 @@ static timer_config_t timer_configs[TIMER_ID_MAX] = {
     [TIMER_ID_5_MIN_GO_HOME] = {
         .handle = NULL,
         .name = "5分钟回家定时器",
-        .period_ms = 1 * 60 * 1000, // 5 分钟
+        .period_ms = 1 * 30 * 1000, // 5 分钟
         .is_periodic = pdFALSE,     // 一次性定时器
         .event_bit = EVENT_TIMER_5_MIN_EXPIRED
     },
@@ -40,7 +40,7 @@ static timer_config_t timer_configs[TIMER_ID_MAX] = {
     [TIMER_ID_10_MIN_AWAY] = {
         .handle = NULL,
         .name = "10分钟离家定时器",
-        .period_ms = 1 * 60 * 1000, // 10 分钟
+        .period_ms = 1 * 30 * 1000, // 10 分钟
         .is_periodic = pdFALSE,      // 一次性定时器
         .event_bit = EVENT_TIMER_10_MIN_AWAY_EXPIRED
     },

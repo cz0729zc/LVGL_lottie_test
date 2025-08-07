@@ -30,22 +30,26 @@ static lv_ui *p_ui = NULL;
 static TimerHandle_t hello_anim_timer = NULL;   // "问候"动画序列定时器
 static TimerHandle_t expression_timer = NULL; // 周期性表情动画定时器
 static TimerHandle_t transition_timer = NULL; // 状态切换过场动画定时器
+static TimerHandle_t plant_anim_finish_timer = NULL; // 植物动画播放完毕后的隐藏定时器
 
 // --- 状态缓存 ---
 static float current_humidity = 0.0f;       // 当前湿度缓存
 static uint8_t current_away_background = 0; // 当前外出背景选择
+static sprite_state_t current_state = SPRITE_STATE_NULL; // 当前状态缓存
 
 // --- 过渡动画状态跟踪 ---
 static struct {
     bool is_in_transition;           // 是否正处于过场动画中
+    sprite_state_t source_state;     // 新增：记录过渡前的状态
     sprite_state_t target_state;     // 过渡结束后的目标状态
     float target_humidity;           // 过渡结束时要使用的湿度值
-} transition_data = { .is_in_transition = false, .target_state = SPRITE_STATE_NULL, .target_humidity = 0.0f };
+} transition_data = { .is_in_transition = false, .source_state = SPRITE_STATE_NULL, .target_state = SPRITE_STATE_NULL, .target_humidity = 0.0f };
 
 // --- 函数前向声明 ---
 static void hello_anim_timer_cb(TimerHandle_t xTimer);
 static void expression_timer_cb(TimerHandle_t xTimer);
 static void transition_timer_cb(TimerHandle_t xTimer);
+static void plant_anim_finish_cb(TimerHandle_t xTimer); // 新增的回调
 static void apply_ui_update(sprite_state_t state, float humidity);
 
 /**
@@ -62,8 +66,10 @@ void ui_controller_init(lv_ui *ui) {
     hello_anim_timer = xTimerCreate("hello_anim_timer", pdMS_TO_TICKS(2000), pdFALSE, (void *)0, hello_anim_timer_cb);
     expression_timer = xTimerCreate("expression_timer", pdMS_TO_TICKS(10000), pdTRUE, (void *)1, expression_timer_cb);
     transition_timer = xTimerCreate("transition_timer", pdMS_TO_TICKS(3000), pdFALSE, (void *)2, transition_timer_cb);
+    // 动画播放两次，每次1秒，总共2秒
+    plant_anim_finish_timer = xTimerCreate("plant_anim_timer", pdMS_TO_TICKS(2000), pdFALSE, NULL, plant_anim_finish_cb);
 
-    if (!hello_anim_timer || !expression_timer || !transition_timer) {
+    if (!hello_anim_timer || !expression_timer || !transition_timer || !plant_anim_finish_timer) {
         ESP_LOGE(TAG, "Failed to create one or more timers.");
     }
 
@@ -79,6 +85,7 @@ void ui_controller_update(sprite_state_t state, float humidity) {
     if (p_ui == NULL) return;
 
     current_humidity = humidity;
+    current_state = state;
 
     if (transition_data.is_in_transition) {
         ESP_LOGD(TAG, "In transition, ignoring UI update for state: %d", state);
@@ -98,6 +105,7 @@ void ui_controller_update(sprite_state_t state, float humidity) {
         if ((is_at_home_now && was_away_before) || (is_away_now && was_at_home_before)) {
             ESP_LOGI(TAG, "Transitioning between home/away, starting loading animation.");
             
+            transition_data.source_state = last_state; // 记录原始状态
             transition_data.target_state = state;
             transition_data.target_humidity = humidity;
             transition_data.is_in_transition = true;
@@ -280,6 +288,10 @@ static void apply_ui_update(sprite_state_t state, float humidity) {
                     lv_obj_clear_flag(p_ui->screen_animimg_idel, LV_OBJ_FLAG_HIDDEN);
                     lv_animimg_start(p_ui->screen_animimg_idel);
                     if (humidity < 20.0f) {
+                        lv_obj_add_flag(p_ui->screen_animimg_idel, LV_OBJ_FLAG_HIDDEN);
+                        lv_obj_clear_flag(p_ui->screen_animimg_idel_flood, LV_OBJ_FLAG_HIDDEN);
+                        lv_animimg_start(p_ui->screen_animimg_idel);
+                        lv_animimg_start(p_ui->screen_animimg_idel);
                         lv_obj_clear_flag(p_ui->screen_animimg_exp_sad, LV_OBJ_FLAG_HIDDEN);
                         lv_animimg_start(p_ui->screen_animimg_exp_sad);
                     } else { // humidity <= 80.0f
@@ -332,6 +344,12 @@ static void transition_timer_cb(TimerHandle_t xTimer) {
     
     transition_data.is_in_transition = false;
     apply_ui_update(transition_data.target_state, transition_data.target_humidity);
+
+    // 检查此次过渡是否是从“准备回家”到“在家”
+    bool target_is_home = (transition_data.target_state == SPRITE_STATE_AT_HOME_AWAKE || transition_data.target_state == SPRITE_STATE_AT_HOME_SLEEPING);
+    if (target_is_home && transition_data.source_state == SPRITE_STATE_PREPARING_TO_GO_HOME) {
+        ui_controller_play_plant_animation();
+    }
 }
 
 /**
@@ -397,7 +415,14 @@ void ui_controller_play_hello_animation(void) {
  */
 static void expression_timer_cb(TimerHandle_t xTimer) {
     if (p_ui == NULL) return;
-    ESP_LOGI(TAG, "Periodic expression timer expired.");
+    ESP_LOGD(TAG, "Periodic expression timer expired.");
+
+    // 如果当前是睡眠状态，不改变表情
+    if (current_state == SPRITE_STATE_AT_HOME_SLEEPING) {
+        ESP_LOGD(TAG, "In sleeping state, keeping sleep expression.");
+        return;
+    }
+
     if (lvgl_port_lock(0)) {
         lv_obj_add_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(p_ui->screen_animimg_exp_sad, LV_OBJ_FLAG_HIDDEN);
@@ -413,5 +438,44 @@ static void expression_timer_cb(TimerHandle_t xTimer) {
             lv_animimg_start(p_ui->screen_animimg_exp_happy);
         }
         lvgl_port_unlock();
+    }
+}
+
+/**
+ * @brief “植物”动画播放完毕后的定时器回调，用于隐藏动画对象。
+ */
+static void plant_anim_finish_cb(TimerHandle_t xTimer) {
+    if (p_ui == NULL) return;
+    ESP_LOGI(TAG, "Plant animation finished, hiding object.");
+    
+    if (lvgl_port_lock(0)) {
+        lv_obj_add_flag(p_ui->screen_animimg_plant_normal, LV_OBJ_FLAG_HIDDEN);
+        lvgl_port_unlock();
+    }
+}
+
+/**
+ * @brief 播放“植物”动画序列。
+ */
+void ui_controller_play_plant_animation(void) {
+    if (p_ui == NULL || plant_anim_finish_timer == NULL) {
+        ESP_LOGE(TAG, "Cannot play plant animation, UI or timer not ready.");
+        return;
+    }
+    ESP_LOGI(TAG, "Playing plant animation sequence.");
+    
+    if (lvgl_port_lock(0)) {
+        // 确保动画对象可见
+        lv_obj_clear_flag(p_ui->screen_animimg_plant_normal, LV_OBJ_FLAG_HIDDEN);
+        // 设置重复播放2次
+        lv_animimg_set_repeat_count(p_ui->screen_animimg_plant_normal, 2);
+        // 从第一帧开始播放
+        lv_animimg_start(p_ui->screen_animimg_plant_normal);
+        lvgl_port_unlock();
+    }
+    
+    // 启动一个2秒后触发的回调，以隐藏动画
+    if (xTimerStart(plant_anim_finish_timer, 0) != pdPASS) {
+        ESP_LOGE(TAG, "Failed to start plant_anim_finish_timer.");
     }
 }

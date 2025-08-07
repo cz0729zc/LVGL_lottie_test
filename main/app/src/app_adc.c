@@ -140,7 +140,7 @@ void adc_app_task(void *param)
 
                     // 定义传感器的实际测量范围
                     const float SENSOR_DRY_VALUE = 25.0f;
-                    const float SENSOR_WET_VALUE = 84.0f;
+                    const float SENSOR_WET_VALUE = 81.0f;
 
                     // 应用线性映射公式
                     percent = (raw_percent - SENSOR_DRY_VALUE) * 100.0f / (SENSOR_WET_VALUE - SENSOR_DRY_VALUE);
