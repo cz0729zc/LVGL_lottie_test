@@ -137,7 +137,9 @@ static void sprite_state_machine_run(EventBits_t events)
                 ESP_LOGI(TAG, "Interaction: Pat the sprite, preparing to go home.");
                 sprite_status.current_state = SPRITE_STATE_PREPARING_TO_GO_HOME;
                 sprite_status.last_state_change_time = xTaskGetTickCount();
-                app_timer_service_start(TIMER_ID_5_MIN_GO_HOME); // 通过服务启动5分钟回家倒计时
+                if (!app_timer_service_is_active(TIMER_ID_5_MIN_GO_HOME)) {
+                    app_timer_service_start(TIMER_ID_5_MIN_GO_HOME);
+                } // 通过服务启动5分钟回家倒计时
             }
             break;
 
