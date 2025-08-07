@@ -26,7 +26,8 @@
     "lvgl.h": "c",
     "ui_controller.h": "c",
     "numbers": "c",
-    "timers.h": "c"
+    "timers.h": "c",
+    "app_timer_service.h": "c"
   },
   "idf.flashType": "UART",
   "idf.portWin": "COM24",

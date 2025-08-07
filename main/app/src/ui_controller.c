@@ -95,6 +95,7 @@ void ui_controller_update(sprite_state_t state, sprite_state_t previous_state, f
     }
 
     static sprite_state_t last_state = SPRITE_STATE_NULL;
+    static float last_humidity = -1.0f; // 使用-1.0f作为初始值，确保第一次更新能正确执行
 
     if (state != last_state) {
         ESP_LOGI(TAG, "UI state changed from %d to %d", last_state, state);
@@ -152,18 +153,30 @@ void ui_controller_update(sprite_state_t state, sprite_state_t previous_state, f
             apply_ui_update(state, previous_state, humidity);
         }
         last_state = state;
-    } else {
-        // 如果主状态未变，只更新需要持续刷新的部分（如湿度状态图标）
-        if (lvgl_port_lock(0)) {
-            lv_obj_add_flag(p_ui->screen_state1, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(p_ui->screen_state2, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(p_ui->screen_state3, LV_OBJ_FLAG_HIDDEN);
-            if (humidity < 20.0f) lv_obj_clear_flag(p_ui->screen_state1, LV_OBJ_FLAG_HIDDEN);
-            else if (humidity <= 80.0f) lv_obj_clear_flag(p_ui->screen_state2, LV_OBJ_FLAG_HIDDEN);
-            else lv_obj_clear_flag(p_ui->screen_state3, LV_OBJ_FLAG_HIDDEN);
-            lvgl_port_unlock();
+    } else { // 状态未改变，但湿度可能改变
+        // 检查湿度是否跨越了关键阈值
+        bool crossed_20_up = (last_humidity < 20.0f && humidity >= 20.0f);
+        bool crossed_20_down = (last_humidity >= 20.0f && humidity < 20.0f);
+        bool crossed_80_up = (last_humidity <= 80.0f && humidity > 80.0f);
+        bool crossed_80_down = (last_humidity > 80.0f && humidity <= 80.0f);
+
+        if (crossed_20_up || crossed_20_down || crossed_80_up || crossed_80_down) {
+            ESP_LOGI(TAG, "Humidity crossed threshold (from %.1f to %.1f), forcing full UI update.", last_humidity, humidity);
+            apply_ui_update(state, previous_state, humidity);
+        } else {
+            // 如果只是小范围变化，只更新状态图标
+            if (lvgl_port_lock(0)) {
+                lv_obj_add_flag(p_ui->screen_state1, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(p_ui->screen_state2, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(p_ui->screen_state3, LV_OBJ_FLAG_HIDDEN);
+                if (humidity < 20.0f) lv_obj_clear_flag(p_ui->screen_state1, LV_OBJ_FLAG_HIDDEN);
+                else if (humidity <= 80.0f) lv_obj_clear_flag(p_ui->screen_state2, LV_OBJ_FLAG_HIDDEN);
+                else lv_obj_clear_flag(p_ui->screen_state3, LV_OBJ_FLAG_HIDDEN);
+                lvgl_port_unlock();
+            }
         }
     }
+    last_humidity = humidity; // 在函数末尾更新上一次的湿度
 }
 
 /**
@@ -204,6 +217,8 @@ static void apply_ui_update(sprite_state_t state, sprite_state_t previous_state,
         // 根据新状态显示对应UI
         switch (state) {
             case SPRITE_STATE_AT_HOME_AWAKE:
+
+            
             case SPRITE_STATE_AT_HOME_SLEEPING:
                 // 优先处理水淹情况，避免UI闪烁
                 if (humidity > 80.0f) {
@@ -219,9 +234,23 @@ static void apply_ui_update(sprite_state_t state, sprite_state_t previous_state,
                     lv_obj_clear_flag(p_ui->screen_background, LV_OBJ_FLAG_HIDDEN);
                     lv_obj_clear_flag(p_ui->screen_animimg_ground, LV_OBJ_FLAG_HIDDEN);
                     lv_animimg_start(p_ui->screen_animimg_ground);
-                    lv_obj_clear_flag(p_ui->screen_animimg_idel, LV_OBJ_FLAG_HIDDEN);
-                    lv_animimg_start(p_ui->screen_animimg_idel);
-                    xTimerStart(expression_timer, 0);
+                    // 根据湿度选择身体动画
+                    if (humidity < 20.0f) {
+                        lv_obj_clear_flag(p_ui->screen_animimg_idel_flood, LV_OBJ_FLAG_HIDDEN);
+                        lv_animimg_set_repeat_count(p_ui->screen_animimg_idel_flood, -1);
+                        lv_animimg_start(p_ui->screen_animimg_idel_flood);
+                        lv_obj_clear_flag(p_ui->screen_animimg_exp_sad, LV_OBJ_FLAG_HIDDEN);
+                        lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_sad, 3);
+                        lv_animimg_start(p_ui->screen_animimg_exp_sad);
+                        
+                    } else {
+                        lv_obj_clear_flag(p_ui->screen_animimg_idel, LV_OBJ_FLAG_HIDDEN);
+                        lv_animimg_start(p_ui->screen_animimg_idel);
+                        lv_obj_clear_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
+                        lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_happy, 3);
+                        lv_animimg_start(p_ui->screen_animimg_exp_happy);
+                    }
+                    xTimerReset(expression_timer, 0);
                 } else { // SPRITE_STATE_AT_HOME_SLEEPING
                     lv_obj_clear_flag(p_ui->screen_background, LV_OBJ_FLAG_HIDDEN);
                     lv_obj_clear_flag(p_ui->screen_animimg_ground, LV_OBJ_FLAG_HIDDEN);
@@ -302,16 +331,16 @@ static void apply_ui_update(sprite_state_t state, sprite_state_t previous_state,
                     lv_animimg_start(p_ui->screen_animimg_flood);
                 } else {
                     // 正常或干燥，播放对应动画
-                    lv_obj_clear_flag(p_ui->screen_animimg_idel, LV_OBJ_FLAG_HIDDEN);
-                    lv_animimg_start(p_ui->screen_animimg_idel);
                     if (humidity < 20.0f) {
-                        lv_obj_add_flag(p_ui->screen_animimg_idel, LV_OBJ_FLAG_HIDDEN);
+                        // 湿度过低，显示干燥动画和悲伤表情
                         lv_obj_clear_flag(p_ui->screen_animimg_idel_flood, LV_OBJ_FLAG_HIDDEN);
-                        lv_animimg_start(p_ui->screen_animimg_idel);
-                        lv_animimg_start(p_ui->screen_animimg_idel);
+                        lv_animimg_start(p_ui->screen_animimg_idel_flood);
                         lv_obj_clear_flag(p_ui->screen_animimg_exp_sad, LV_OBJ_FLAG_HIDDEN);
                         lv_animimg_start(p_ui->screen_animimg_exp_sad);
-                    } else { // humidity <= 80.0f
+                    } else { // 20.0f <= humidity <= 80.0f
+                        // 湿度正常，显示常规动画和开心表情
+                        lv_obj_clear_flag(p_ui->screen_animimg_idel, LV_OBJ_FLAG_HIDDEN);
+                        lv_animimg_start(p_ui->screen_animimg_idel);
                         lv_obj_clear_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
                         lv_animimg_start(p_ui->screen_animimg_exp_happy);
                     }
@@ -423,6 +452,8 @@ void ui_controller_play_hello_animation(void) {
         lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_hello, 2);
         lv_animimg_start(p_ui->screen_animimg_exp_hello);
         xTimerStart(hello_anim_timer, 0);
+        // 重置周期性表情定时器，确保hello动画结束后能按计划刷新表情
+        xTimerReset(expression_timer, 0);
         lvgl_port_unlock();
     }
 }
@@ -449,6 +480,7 @@ static void expression_timer_cb(TimerHandle_t xTimer) {
             lv_obj_clear_flag(p_ui->screen_animimg_exp_sad, LV_OBJ_FLAG_HIDDEN);
             lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_sad, 3);
             lv_animimg_start(p_ui->screen_animimg_exp_sad);
+            
         } else {
             lv_obj_clear_flag(p_ui->screen_animimg_exp_happy, LV_OBJ_FLAG_HIDDEN);
             lv_animimg_set_repeat_count(p_ui->screen_animimg_exp_happy, 3);

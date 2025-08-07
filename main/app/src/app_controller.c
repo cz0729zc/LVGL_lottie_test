@@ -113,9 +113,16 @@ static void sprite_state_machine_run(EventBits_t events)
     switch (sprite_status.current_state) {
         case SPRITE_STATE_AT_HOME_AWAKE:
             ESP_LOGI(TAG, "State: AT_HOME_AWAKE");
-            // 仅当定时器未激活时才启动，避免在循环中反复重置
-            if (!app_timer_service_is_active(TIMER_ID_10_MIN_AWAY)) {
-                app_timer_service_start(TIMER_ID_10_MIN_AWAY);
+            // 根据湿度决定是否启动离家定时器
+            if (sensor_data.adc_percent_ch0 < 20.0f) {
+                // 湿度过低，停止定时器
+                app_timer_service_stop(TIMER_ID_10_MIN_AWAY);
+                ESP_LOGI(TAG, "Humidity is low, stopping away timer.");
+            } else {
+                // 湿度正常，（如果定时器未运行）启动定时器
+                if (!app_timer_service_is_active(TIMER_ID_10_MIN_AWAY)) {
+                    app_timer_service_start(TIMER_ID_10_MIN_AWAY);
+                }
             }
             if (events & USER_INTERACTION_TAP) {
                 ESP_LOGI(TAG, "Interaction: Pat the sprite, sprite says hello!");
@@ -126,9 +133,16 @@ static void sprite_state_machine_run(EventBits_t events)
 
         case SPRITE_STATE_AT_HOME_SLEEPING:
             ESP_LOGI(TAG, "State: AT_HOME_SLEEPING");
-            // 仅当定时器未激活时才启动，避免在循环中反复重置
-            if (!app_timer_service_is_active(TIMER_ID_10_MIN_AWAY)) {
-                app_timer_service_start(TIMER_ID_10_MIN_AWAY);
+            // 根据湿度决定是否启动离家定时器
+            if (sensor_data.adc_percent_ch0 < 20.0f) {
+                // 湿度过低，停止定时器
+                app_timer_service_stop(TIMER_ID_10_MIN_AWAY);
+                ESP_LOGI(TAG, "Humidity is low, stopping away timer.");
+            } else {
+                // 湿度正常，（如果定时器未运行）启动定时器
+                if (!app_timer_service_is_active(TIMER_ID_10_MIN_AWAY)) {
+                    app_timer_service_start(TIMER_ID_10_MIN_AWAY);
+                }
             }
             if (events & USER_INTERACTION_TAP) {
                 ESP_LOGI(TAG, "Interaction: Pat the sprite, waking it up.");
@@ -228,9 +242,9 @@ static void sprite_state_machine_run(EventBits_t events)
             break;
          case SPRITE_STATE_NULL:
             if ((rand() % 10) <= 3) {
-                sprite_status.current_state = SPRITE_STATE_AT_HOME_SLEEPING;
-            } else {
                 sprite_status.current_state = SPRITE_STATE_AT_HOME_AWAKE;
+            } else {
+                sprite_status.current_state = SPRITE_STATE_AT_HOME_SLEEPING;
             }         
             break;  
 
